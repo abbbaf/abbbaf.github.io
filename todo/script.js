@@ -163,22 +163,20 @@ function main() {
     load();
 
 
-    const addTaskContainer = () => {
-        addTask(container, taskContentEvents);
-    }
-    const removeTaskContainer = () => {
-        removeCheckedTasks(container);
-        save();
-    }
-
     const undoEvent = () => {
         undo(load);
         save(false);
     }
 
 
-    $(".add-task-container").onclick = addTaskContainer;
-    $(".remove-tasks-container").onclick = removeTaskContainer;
+    $(".add-task-container").onclick = () => {
+        addTask(container, taskContentEvents);
+    };
+    
+    $(".remove-tasks-container").onclick = () => {
+        removeCheckedTasks(container);
+        save();
+    };
 
 
     container.onchange = (e) => {
