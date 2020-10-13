@@ -1,0 +1,94 @@
+body {
+    font-family: "Chilanka";
+  }
+  h1 {
+    margin-bottom: 20px;
+    text-align: center;
+    color: blue;
+  }
+  .add-task-container {
+    /* border: 3px solid blue; */
+    border-radius: 20px;
+    display: inline-block;
+    padding: 10px;
+    margin-bottom: 10px;
+  }
+  .add-task-container:hover {
+    background-color: azure;
+    cursor: pointer;
+  }
+  .plus-icon,
+  .trash-icon {
+    width: 30px;
+    height: 30px;
+    vertical-align: middle;
+  }
+  .plus-icon + span {
+    font-size: 20px;
+    font-weight: bold;
+    line-height: 30px;
+    vertical-align: middle;
+  }
+  .remove-tasks-container {
+    display: inline-block;
+    cursor: pointer;
+    float: right;
+  }
+  
+  .tasks-container {
+    border-bottom: 2px solid blue;
+  }
+  .task-container {
+    border-bottom: 1px solid blueviolet;
+  }
+  .task {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px;
+    text-decoration: none;
+  }
+  .task:hover {
+    border: 1px solid green;
+  }
+  .task-content {
+    display: block;
+    padding-left: 10px;
+    width: 100%;
+    min-height: 1em;
+  }
+
+  .task-content:focus {
+    outline: 0px solid transparent;
+  }
+
+
+  .sub-tasks-container {
+    margin-left: 20px;
+  }
+  
+  .done {
+    text-decoration: line-through;
+  }
+
+  .is-complete span {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      border: 1px solid #555;
+      border-radius: 20%;
+  }
+
+  .is-complete input:checked + span::before {
+    content: "\2713";
+    display: inline-block;
+    font-size: 1em;
+    transform: scale(2) translate(3px,-4px);
+    text-align: center;
+    color: green;
+  }
+
+  .date {
+      width: 130px;
+  }
+  
