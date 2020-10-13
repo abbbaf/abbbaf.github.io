@@ -160,7 +160,7 @@ $(() => {
         save();
     }
 
-    $(".add-task-container").on('click',addTaskContainer);
+    $(".add-task-container").on('click hover',addTaskContainer);
     $(".remove-tasks-container").on('click',removeTaskContainer);
     document.querySelector(".add-task-container").ontouchend = addTaskContainer;
     document.querySelector(".remove-tasks-container").ontouchend = removeTaskContainer;
