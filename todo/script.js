@@ -61,7 +61,6 @@ function initTaskContentEvents(container, save) {
             }
     
             if (e.key == "Backspace" && (e.target.innerHTML == "" ||  e.target.innerHTML == "<br>")) {
-                e.preventDefault();
                 removeTask($(e.target).parent());
                 save();
             }
@@ -155,12 +154,16 @@ $(() => {
     const load = loader(taskContentEvents);
     load();
 
-
-    $(".add-task-container").on('click touchstart',() => addTask(container, taskContentEvents));
-    $(".remove-tasks-container").on('click touchstart', () => {
+    const addTaskContainer = () => addTask(container, taskContentEvents);
+    const removeTaskContainer = () => {
         removeCheckedTasks(container);
         save();
-    });
+    }
+
+    $(".add-task-container").on('click',addTaskContainer);
+    $(".remove-tasks-container").on('click',removeTaskContainer);
+    document.querySelector(".add-task-container").ontouchend = addTaskContainer;
+    document.querySelector(".remove-tasks-container").ontouchend = removeTaskContainer;
 
 
     $(".task-container").on('change',"input:checkbox",function() {
