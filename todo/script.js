@@ -61,6 +61,7 @@ function initTaskContentEvents(container, save) {
             }
     
             if (e.key == "Backspace" && (e.target.innerHTML == "" ||  e.target.innerHTML == "<br>")) {
+                e.preventDefault();
                 removeTask($(e.target).parent());
                 save();
             }
