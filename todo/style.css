@@ -1,3 +1,4 @@
+
 body {
     font-family: "Chilanka";
   }
@@ -35,12 +36,12 @@ body {
     min-width: 3em;
     min-height: 3em;
     vertical-align: middle;
+    padding: 0 1em;
   }
  
   .remove-tasks-container {
     display: inline-block;
     cursor: pointer;
-    padding-left: 2em;
   }
 
   .remove-tasks-container img {
