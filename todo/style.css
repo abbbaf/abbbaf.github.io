@@ -33,8 +33,26 @@ body {
     display: inline-block;
     cursor: pointer;
     float: right;
+    padding-left: 2em;
+  }
+
+  .remove-tasks-container img {
+    max-width: 2em;
+    max-height: 2em;
+  }
+
+  .undo {
+    display: inline-block;
+    cursor: pointer;
+    float: right;
+    margin-left: 10px;
   }
   
+  .undo img {
+      max-width: 2em;
+      max-height: 2em;
+  }
+
   .tasks-container {
     border-bottom: 2px solid blue;
   }

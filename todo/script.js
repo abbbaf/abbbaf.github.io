@@ -1,6 +1,6 @@
 const deletedStyle = "done";
 const cookieId = "myTodo";
-
+const $ = document.querySelector.bind(document);
 
 function compareArrays(array1, array2) {
     return JSON.stringify(array1) == JSON.stringify(array2)
@@ -8,13 +8,13 @@ function compareArrays(array1, array2) {
 
 
 function createNewTaskElement(content="", isChecked = false) {
-    const newTaskElement = $($('#taskTemplate')[0].content).clone();
+    const newTaskElement = $('#taskTemplate').content.cloneNode(true);
     if (isChecked) {
-        newTaskElement.find('.task').addClass(deletedStyle);
-        newTaskElement.find('input:checkbox').attr("checked",true);
+        newTaskElement.querySelector('.task').classList.add(deletedStyle);
+        newTaskElement.querySelector('input[type="checkbox"]').checked = true;
     }
-    const taskContent = newTaskElement.find('.task-content');
-    taskContent.html(content);
+    const taskContent = newTaskElement.querySelector('.task-content');
+    taskContent.innerHTML = content;
     return { taskWrapper: newTaskElement, taskContent };
 }
 
@@ -31,22 +31,27 @@ function removeTask(task) {
 }
 
 
+function removeBySelector(container, selector) {
+    Array.from(container.querySelectorAll(selector)).forEach(e => e.remove())
+
+}
 
 function removeCheckedTasks(container) {
-    container.find($('.' + deletedStyle)).remove();
+    removeBySelector(container,"." + deletedStyle);
 }
 
 
 function clearAll(container) {
-    container.find(":not(template)").remove();
+    removeBySelector(container,":not(template)");
 }
 
-function taskStatisChangeHandler(container,e) {
-    const $this = $(e)
-    const task = $this.closest('.task');
-    task.toggleClass(deletedStyle);
-    if ($this.is(":checked")) {
-        task.detach().appendTo(container);
+
+function taskStatisChangeHandler(container,checkbox) {
+    const task = checkbox.closest('.task');
+    task.classList.toggle(deletedStyle);
+    if (checkbox.checked) {
+        task.remove();
+        container.append(task);
     }
 }
 
@@ -54,29 +59,30 @@ function taskStatisChangeHandler(container,e) {
 
 function initTaskContentEvents(container, save) {
     const taskContentEvents = (taskContent) => {
-        taskContent.on("keydown",(e) => {
+        taskContent.onkeydown = (e) => {
             if (e.key == 'Enter') { 
                 e.preventDefault();
                 addTask(container, taskContentEvents);
             }
     
             if (e.key == "Backspace" && (e.target.innerHTML == "" ||  e.target.innerHTML == "<br>")) {
-                removeTask($(e.target).parent());
+                e.preventDefault();
+                removeTask(e.target.closest('.task'));
                 save();
             }
     
-        });
+        };
 
         const oninput = () => {
-            taskContent.on('blur',() => {
+            taskContent.onblur = () => {
                 save();
-                taskContent.off("blur");
-                taskContent.on("input",oninput)
-            });
-            taskContent.off("input");
+                taskContent.onblur = null;
+                taskContent.oninput = oninput;
+            };
+            taskContent.oninput = null;
         }
 
-        taskContent.on("input",oninput);
+        taskContent.oninput = oninput;
         
     }   
 
@@ -104,13 +110,14 @@ function initSaveAndLoad(container, saveFormat) {
 
     const loader = (taskContentEvents) => (data) => {
         if (!data) {
-            data = JSON.parse(getCookies()[cookieId] || []);
+            data = JSON.parse(getCookies()[cookieId] || "[]");
             allSaves.push(data);
         }
         data.forEach((e) => addTask(container, taskContentEvents, e));
+     
     }
 
-    const save = saveFunc(allSaves, saveFormat);
+    const save = saveFunc(container, allSaves, saveFormat);
 
     const undo = (load) => {
         if (allSaves.length <= 1) return;
@@ -123,10 +130,10 @@ function initSaveAndLoad(container, saveFormat) {
 }
 
 
-function saveFunc(allSaves, saveFormat) {
+function saveFunc(container, allSaves, saveFormat) {
     const max = 100;
     return (newSave=true) => {
-        const data = $.map($('.task'),saveFormat);
+        const data = Array.from(container.querySelectorAll('.task')).map(saveFormat);
 
         if (newSave) {
             if (compareArrays(allSaves[allSaves.length-1],data)) return;
@@ -141,47 +148,58 @@ function saveFunc(allSaves, saveFormat) {
 
 
 //On load
-$(() => {  
+function main() {  
 
     const container = $('.task-container');
 
     const { loader, save, undo } = initSaveAndLoad(container, task => ({
-        content: $(task).find($('.task-content')).html(), 
-        isChecked: $(task).find("input:checkbox").is(':checked') 
+        content: task.querySelector('.task-content').innerHTML,
+        isChecked: task.querySelector('input[type="checkbox"').checked
     }));
 
     const taskContentEvents = initTaskContentEvents(container, save);
+
     const load = loader(taskContentEvents);
     load();
 
-    const addTaskContainer = () => addTask(container, taskContentEvents);
+
+    const addTaskContainer = () => {
+        addTask(container, taskContentEvents);
+    }
     const removeTaskContainer = () => {
         removeCheckedTasks(container);
         save();
     }
 
-    $(".add-task-container").on('click hover',addTaskContainer);
-    $(".remove-tasks-container").on('click',removeTaskContainer);
-    document.querySelector(".add-task-container").ontouchend = addTaskContainer;
-    document.querySelector(".remove-tasks-container").ontouchend = removeTaskContainer;
+    const undoEvent = () => {
+        undo(load);
+        save(false);
+    }
 
 
-    $(".task-container").on('change',"input:checkbox",function() {
-        taskStatisChangeHandler(container, this);
-        save();
-    });
+    $(".add-task-container").onclick = addTaskContainer;
+    $(".remove-tasks-container").onclick = removeTaskContainer;
 
 
-    $('body').on('keydown',(e) => {
+    container.onchange = (e) => {
+        if (e.target.tagName == "INPUT" && e.target.type == "checkbox")  {
+            taskStatisChangeHandler(container, e.target);
+            save();
+        }
+    }
+    
+    $('.undo').onclick = undoEvent;
+
+
+    $('body').onkeydown = (e) => {
         if (e.altKey && e.key == 'n') {
             addTask(container, taskContentEvents);
         } 
         else if (e.ctrlKey && e.key == 'z') {
-            undo(load);
-            save(false);
+            undoEvent();
         }
-    })  
-    
-    
- 
-})
+    }
+
+}
+
+main();

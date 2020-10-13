@@ -7,14 +7,11 @@
 
     <link rel="stylesheet" href="style.css" />
 
-    <script
-      src="https://code.jquery.com/jquery-3.5.1.js"
-      integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc="
-      crossorigin="anonymous"
-    ></script>
-    <script src="./script.js"></script>
+
+    <script src="./script.js" defer></script>
   </head>
   <body>
+
     <div class="add-task-container">
       <img
         class="plus-icon"
@@ -22,11 +19,12 @@
       /><span>Add a task</span>
     </div>
     <div class="remove-tasks-container">
-      <img
-        class="trash-icon"
-        src="https://cdn2.iconfinder.com/data/icons/cleaning-19/30/30x30-10-512.png"
-      />
+      <img src="./trash.png"/>
     </div>
+    <div class="undo">
+      <img src="./undo.png">
+    </div>
+   
 
     <div class="task-container">
         <template id="taskTemplate">
