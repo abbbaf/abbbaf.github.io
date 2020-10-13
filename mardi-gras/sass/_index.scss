@@ -1,0 +1,98 @@
+
+#phoneHeader {
+    
+    display: none;
+    position: relative;
+    img {
+        width: 100vh;
+    }
+
+    @include phone {
+        display: block;
+    }
+}
+
+.slider-container {
+
+    @include phone {
+        display: none;
+    }
+
+    position: relative;
+    width: 100vw;
+    height: 80vh;
+
+
+    @include sliderItem(1200ms) {
+    
+        span {
+            position: absolute;
+            font-size: 5em;
+            font-family: getFont(3);
+            color: getColor(4);
+            text-shadow: 7px 7px getColor(5);
+        }
+
+        img {
+            width: 100vw;
+            height: 80vh;
+        }
+    }
+ 
+}
+
+.main {
+    display: flex;
+    @include phone {
+        display: block;
+    }
+}
+
+aside {
+    flex-basis: 20%;
+    margin: 1em;
+    display: flex;
+    @include phone {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        grid-gap: 1.5em;
+    }
+    flex-direction: column;
+    justify-content: space-between;
+
+}
+
+aside a {
+    text-decoration: none;
+    color: getColor(5);
+}
+
+aside a p {
+    @include phone {
+        display: none;
+    }
+    text-align: justify;
+    font-size: 0.8em;
+    margin: 0;
+    padding: 0.5em;
+}
+
+aside a h2 {
+    font-size: 1.2em;
+    margin: 0;
+}
+
+aside figure {
+    border: 1px solid #000;
+    margin-bottom: 1em;
+}
+
+aside img {
+    width: 100%;
+    height: 100%;
+}
+
+.content-first {
+    flex-basis: 100%;
+    flex-grow: 1;
+}

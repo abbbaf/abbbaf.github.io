@@ -1,0 +1,24 @@
+.gallery {
+  width: 100%;
+  height: 100%;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: (1fr)[5];
+      grid-template-columns: repeat(5, 1fr);
+  grid-gap: 1vw;
+}
+
+.gallery > * {
+  width: 13vw;
+  height: 13vw;
+}
+
+.box {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000000aa;
+}
+/*# sourceMappingURL=media.css.map */

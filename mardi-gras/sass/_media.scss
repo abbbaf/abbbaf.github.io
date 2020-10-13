@@ -1,0 +1,86 @@
+.small-img-gallery {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    @include phone {
+        grid-template-columns: repeat(3,1fr);
+    }
+    grid-gap: 1vw;
+    
+}
+
+.small-img-gallery>* {
+    width: 13vw;
+    height: 13vw;
+    @include phone {
+        width: 25vw;
+        height: 25vw;
+    }
+    cursor: pointer;
+}
+
+
+
+
+.box {
+    position: fixed;
+    display: none;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000000cc;
+    justify-content: center;
+    align-items: center;
+    z-index: 3;
+
+    .slider-gallery {
+
+        position: relative;
+        width: 100vw;
+        height: 80vh;
+
+        .progress {
+            position: absolute;
+            bottom: 0;
+            align-self: center;
+            color: getColor(4);
+            font-family: getFont(1);
+            z-index: 2;
+            font-size: 2em;
+            transform: translateY(100%);
+        }
+
+        .close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            padding: 0.2em;
+            background-color: red;
+            color: white;
+            border-radius: 10%;
+            font-family: getFont(1);
+            font-size: 2em;
+            cursor: pointer;
+            z-index: 2;
+        }
+    
+        @include sliderItem(1200ms) {
+            width: 100vw;
+            height: 80vh;
+            padding: 0 15vw;
+            img, iframe {
+                height: 100%;
+                width: 70vw;
+            }
+        }
+
+        .next, .prev {
+            color: getColor(4);
+        }
+    
+    }
+    
+}
+

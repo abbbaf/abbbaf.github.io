@@ -1,0 +1,226 @@
+@import url('https://fonts.googleapis.com/css2?family=Henny+Penny&family=Pattaya&family=Roboto:ital,wght@0,500;1,300;1,700;1,900&display=swap');        
+
+
+$colors: #9453A6, #8CBF3F, #F2CC0F, #F2F2F2, #0D0D0D;
+$fonts: 'Roboto',  'Henny Penny' , 'Pattaya';
+
+@mixin phone {
+    @media only screen and (min-width: 0) and (max-width : 600px) {
+        @content
+    }
+}
+@mixin noPhone {
+    @media only screen and (min-width: 601px)  {
+        @content
+    }
+}
+
+
+@function getColor($index) {
+    @return nth($colors,$index);
+}
+
+@function getFont($index) {
+    @return nth($fonts,$index);
+}
+
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+}
+
+
+body {
+    background-image: url('../images/background.png');
+    background-size: cover;
+}
+
+h2, a, p, summary, label, input, textarea {
+    font-family: getFont(1);
+    color: lighten(getColor(5),10%);
+    font-size: 1.2em;
+}
+
+h2 {
+    margin: 2em;
+    font-size: 1.5em;
+}
+
+p {
+    margin: 1em;
+}
+
+
+
+h1 {
+    font-family: getFont(3);
+    font-size: 5em;
+    display: block;
+    text-align: center;
+    width: 100%;
+    margin-top: 0.5em;
+}
+
+header {
+
+    position: relative;
+    background-image: url('../images/background_image.png');
+    background-size: contain;
+    height: 7em;
+    display: block;
+
+    h1 {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        @include phone {
+            display: none;
+        }
+        font-size: 3em;
+        font-family: getFont(2);
+        color: getColor(5);
+    }
+
+    img {
+        position: absolute;
+        height: 7em;
+        top: 0;
+        left: 0;
+        @include phone {
+            margin-left: 50%;
+        }
+    }
+
+}
+
+
+
+#active {
+    background-color: getColor(4);
+    border: 1px solid getColor(5);
+    transition: background-color 0.3s ease-in;
+
+    a {
+        color: getColor(1);
+        font-weight: bold;
+    }
+}
+
+
+nav {
+    position: relative;
+    width: 100%;
+    height: 2em;
+    z-index: 2;
+
+    %listHover {
+        background-color: getColor(4);
+        border: 1px solid #000;
+        transition: background-color 0.3s ease-in;
+    }
+
+    @include phone {
+        position: absolute;
+    }
+
+
+    ul {
+        display: flex;
+        @include phone {
+            margin-top: 1em;
+            display: none;
+            flex-direction: column;
+            position: absolute;
+            top: 5em;
+
+            &:hover {
+                display: flex;
+            }
+        }
+        list-style: none;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+
+        li {
+            margin: 0.1em;
+            border-radius: 10%;
+            background-color: getColor(1);
+            padding: 0 0.2em;
+            width: 6em;   
+            @include phone {
+                border-radius: 0;
+                border: 1px solid #000;
+                margin:0;
+                width: 8em;
+                padding: 1em;
+            }
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-basis: 12%;
+
+            a {
+                font-family: getFont(1);
+                font-size: 1.4em;
+                width: 100%;
+                text-align: center;
+                text-decoration: none;
+                color: getColor(4);
+            }
+
+            &:hover {
+                @extend #active;
+            }
+
+        }
+    }
+
+}
+
+
+
+.main {
+    width: 100%;
+    display: flex;
+}
+
+footer {
+    display: block;
+    text-align: center;
+    background-color: getColor(2);
+    font-weight: bold;
+    opacity: 0.7;
+}
+
+
+
+.content {
+    width: 70vw;
+    @include phone {
+        width: 90vw;
+    }
+    margin: 0 auto;
+    margin-bottom: 5em;
+}
+
+
+#mobileMenu {
+    position: absolute;
+    top: -1em;
+    font-size: 5em;
+    display: none;
+    color: getColor(1);
+
+    @include phone {
+        display: inline-block;
+        
+        &:hover+ul {
+            display: flex;
+        }
+    }
+}

@@ -1,0 +1,83 @@
+#contactForm {
+    width: 90vw;
+    display: flex;
+    flex-direction: column;
+    @include phone {
+        label {
+            display: none;
+        }
+    }
+
+    @include noPhone {
+        input::placeholder {
+            color: transparent
+        }
+        textarea::placeholder {
+            color: transparent;
+        }
+    }
+ 
+
+    fieldset {
+        max-width: 80vw;
+        border: 0;
+        display: grid;
+        grid-template-columns: repeat(3,1fr);
+        grid-gap: 0.5em 5vw;
+
+        @include phone {
+            display: flex;
+            flex-direction: column;
+        }
+
+        * {
+            max-width: 22vw;
+
+            @include phone {
+                max-width: 100%;
+            }
+        }
+
+        input {
+            margin-bottom: 0.5em;
+        }
+
+
+
+    }
+
+
+}
+
+
+
+
+textarea {
+    max-width: 80vw;
+    margin-bottom: 2em;
+    margin-top: 0.5em;
+    resize: none;
+}
+
+
+#send {
+    width: 5em;
+    margin: 0 auto;
+    grid-area: send;
+    font-family: getFont(1);
+    font-size: 1.5em;
+}
+
+input, textarea {
+    border: 1px solid getColor(1);
+    background-color: lighten(getColor(2),40%);
+    padding: 0.2em;
+}
+
+input[type=submit] {
+    max-width: 4em;
+    padding: 5px;
+    border-radius: 10%;
+    background-color: getColor(2);
+    color: getColor(4);
+}

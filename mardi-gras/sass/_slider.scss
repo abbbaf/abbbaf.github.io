@@ -1,0 +1,73 @@
+
+@mixin sliderItem($transitionTime: 1000, $sliderWidth: 100vw) {
+    position: relative;
+
+    .item {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        align-items: center;
+        
+    
+        @content;
+    }
+    
+    
+    .media {
+        display: flex;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .slider {
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+        height: 100%;
+    
+    }
+    
+    .slide-left .media {
+        transform: translateX($sliderWidth);
+        transition: all $transitionTime ease-in-out;
+    }
+    
+    .slide-right .media {
+        transform: translateX(-$sliderWidth);
+        transition: all $transitionTime ease-in-out;
+    }
+    
+    .controls {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .next,
+    .prev {
+        position: absolute;
+        cursor: pointer;
+        z-index: 1;
+        font-size: 5em;
+        color: #000
+    }
+    
+    .next {
+        align-self: flex-end;
+        padding-right: 2%;
+    }
+    
+    .prev {
+        align-self: flex-start;
+        padding-left: 2%;
+    }
+
+}
+
+
+
