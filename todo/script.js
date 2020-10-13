@@ -154,11 +154,17 @@ $(() => {
     const load = loader(taskContentEvents);
     load();
 
-    $(".add-task-container").on('click',() => addTask(container, taskContentEvents));
-    $(".remove-tasks-container").on('click',() => {
+    const addTaskContainer = () => addTask(container, taskContentEvents);
+    const removeTaskContainer = () => {
         removeCheckedTasks(container);
         save();
-    });
+    }
+
+    $(".add-task-container").on('click',addTaskContainer);
+    $(".remove-tasks-container").on('click',removeTaskContainer);
+    $(".add-task-container").on('touchend',addTaskContainer);
+    $(".remove-tasks-container").on('touchend',removeTaskContainer);
+
 
     $(".task-container").on('change',"input:checkbox",function() {
         taskStatisChangeHandler(container, this);
