@@ -1,38 +1,45 @@
 body {
     font-family: "Chilanka";
   }
+
+  .buttons {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+  }
+
   h1 {
     margin-bottom: 20px;
     text-align: center;
     color: blue;
   }
   .add-task-container {
-    /* border: 3px solid blue; */
     border-radius: 20px;
     display: inline-block;
-    padding: 10px;
     margin-bottom: 10px;
+    margin: 0 1em;
   }
+
+  .add-task-container img {
+      width: 3em;
+      height: 3em;
+  }
+
+  
   .add-task-container:hover {
     background-color: azure;
     cursor: pointer;
   }
-  .plus-icon,
+
   .trash-icon {
-    width: 30px;
-    height: 30px;
+    min-width: 3em;
+    min-height: 3em;
     vertical-align: middle;
   }
-  .plus-icon + span {
-    font-size: 20px;
-    font-weight: bold;
-    line-height: 30px;
-    vertical-align: middle;
-  }
+ 
   .remove-tasks-container {
     display: inline-block;
     cursor: pointer;
-    float: right;
     padding-left: 2em;
   }
 
@@ -44,13 +51,12 @@ body {
   .undo {
     display: inline-block;
     cursor: pointer;
-    float: right;
     margin-left: 10px;
   }
   
   .undo img {
-      max-width: 2em;
-      max-height: 2em;
+      max-width: 3em;
+      max-height: 3em;
   }
 
   .tasks-container {
@@ -95,6 +101,7 @@ body {
       height: 1em;
       border: 1px solid #555;
       border-radius: 20%;
+      margin: 0 1em;
   }
 
   .is-complete input:checked + span::before {
@@ -106,7 +113,21 @@ body {
     color: green;
   }
 
-  .date {
-      width: 130px;
+  .change-lang-dir {
+      justify-self: flex-start;
+      flex-basis: 100%;
+      display: flex;
+      justify-content: flex-end;
+      cursor: pointer;
+
   }
-  
+
+  .change-lang-dir img {
+      transform: scale(1);
+  }
+
+  .flip {
+     transform: scaleX(-1);
+  }
+
+

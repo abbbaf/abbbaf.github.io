@@ -1,6 +1,20 @@
 const deletedStyle = "done";
 const cookieId = "myTodo";
+const flipDirectionCookie = "todoDir"
+const cookies = getCookies();
+
+const nonDefaultDirection = "rtl";
+
 const $ = document.querySelector.bind(document);
+
+function getCookies() {
+    return document.cookie.split('; ').reduce((acc,e) => {
+        const index = e.indexOf("=");
+        acc[e.substr(0,index)] = e.substr(index+1);
+        return acc;
+    },{})
+}
+
 
 function compareArrays(array1, array2) {
     return JSON.stringify(array1) == JSON.stringify(array2)
@@ -91,16 +105,9 @@ function initTaskContentEvents(container, save) {
 
 
 
-function getCookies() {
-    return document.cookie.split('; ').reduce((acc,e) => {
-        const index = e.indexOf("=");
-        acc[e.substr(0,index)] = e.substr(index+1);
-        return acc;
-    },{})
-}
 
 
-function saveInCookies(data) {
+function saveInCookies(cookieId, data) {
     document.cookie = cookieId + "=" + JSON.stringify(data);
 }
 
@@ -110,7 +117,7 @@ function initSaveAndLoad(container, saveFormat) {
 
     const loader = (taskContentEvents) => (data) => {
         if (!data) {
-            data = JSON.parse(getCookies()[cookieId] || "[]");
+            data = JSON.parse(cookies[cookieId] || "[]");
             allSaves.push(data);
         }
         data.forEach((e) => addTask(container, taskContentEvents, e));
@@ -142,13 +149,27 @@ function saveFunc(container, allSaves, saveFormat) {
                 allSaves.slice(max/2);
             }
         }
-        saveInCookies(data);
+        saveInCookies(cookieId,data);
     }
 }
 
 
+function flipDirection(element) {
+    if (document.body.dir == "ltr") {
+        document.body.dir = "rtl";
+        element.style.transform = "scaleX(-1)"
+    }
+    else {
+        document.body.dir = "ltr";
+        element.style.transform = "scaleX(1)"
+    }
+}
+
 //On load
-function main() {  
+function main() { 
+    if (cookies[flipDirectionCookie] == "true") {
+        flipDirection($('.change-lang-dir img'));
+    }
 
     const container = $('.task-container');
 
@@ -163,20 +184,22 @@ function main() {
     load();
 
 
+    const addTaskContainer = () => {
+        addTask(container, taskContentEvents);
+    }
+    const removeTaskContainer = () => {
+        removeCheckedTasks(container);
+        save();
+    }
+
     const undoEvent = () => {
         undo(load);
         save(false);
     }
 
 
-    $(".add-task-container").onclick = () => {
-        addTask(container, taskContentEvents);
-    };
-    
-    $(".remove-tasks-container").onclick = () => {
-        removeCheckedTasks(container);
-        save();
-    };
+    $(".add-task-container").onclick = addTaskContainer;
+    $(".remove-tasks-container").onclick = removeTaskContainer;
 
 
     container.onchange = (e) => {
@@ -196,6 +219,11 @@ function main() {
         else if (e.ctrlKey && e.key == 'z') {
             undoEvent();
         }
+    }
+
+    $('.change-lang-dir').onclick = (e) => {
+        flipDirection(e.target);
+        saveInCookies(flipDirectionCookie,document.body.dir == nonDefaultDirection);
     }
 
 }
