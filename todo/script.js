@@ -162,7 +162,7 @@ $(() => {
 
     $(".add-task-container").on('click',addTaskContainer);
     $(".remove-tasks-container").on('click',removeTaskContainer);
-    $(".add-task-container").on('touchend',addTaskContainer);
+    $(".add-task-container").on('touchend touchcancel',addTaskContainer);
     $(".remove-tasks-container").on('touchend',removeTaskContainer);
 
 
