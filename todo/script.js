@@ -154,16 +154,12 @@ $(() => {
     const load = loader(taskContentEvents);
     load();
 
-    const addTaskContainer = () => addTask(container, taskContentEvents);
-    const removeTaskContainer = () => {
+
+    $(".add-task-container").on('click touchstart',() => addTask(container, taskContentEvents));
+    $(".remove-tasks-container").on('click touchstart', () => {
         removeCheckedTasks(container);
         save();
-    }
-
-    $(".add-task-container").on('click',addTaskContainer);
-    $(".remove-tasks-container").on('click',removeTaskContainer);
-    $(".add-task-container").on('touchend touchcancel',addTaskContainer);
-    $(".remove-tasks-container").on('touchend',removeTaskContainer);
+    });
 
 
     $(".task-container").on('change',"input:checkbox",function() {
