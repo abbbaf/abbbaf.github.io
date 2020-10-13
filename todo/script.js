@@ -104,10 +104,10 @@ function initSaveAndLoad(container, saveFormat) {
 
     const loader = (taskContentEvents) => (data) => {
         if (!data) {
-            data = getCookies()[cookieId];
-            if (data) allSaves.push(JSON.parse(data));
+            data = JSON.parse(getCookies()[cookieId] || []);
+            allSaves.push(data);
         }
-        if (data) data.forEach((e) => addTask(container, taskContentEvents, e));
+        data.forEach((e) => addTask(container, taskContentEvents, e));
     }
 
     const save = saveFunc(allSaves, saveFormat);
