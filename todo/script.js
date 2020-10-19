@@ -18,7 +18,7 @@ function getCookies() {
 function saveInCookies(cookieId, data) {
     const exdate=new Date();
     exdate.setDate(exdate.getDate() + 365);
-    document.cookie = cookieId + "=" + JSON.stringify(data) + "; expires=" + exdate.toUTCString(); 
+    document.cookie = cookieId + "=" + JSON.stringify(data) + "; SameSite=Strict; expires=" + exdate.toUTCString(); 
 }
 
 
