@@ -15,6 +15,12 @@ function getCookies() {
     },{})
 }
 
+function saveInCookies(cookieId, data) {
+    const exdate=new Date();
+    exdate.setDate(exdate.getDate() + 365);
+    document.cookie = cookieId + "=" + JSON.stringify(data) + "; expires=" + exdate.toUTCString()); 
+}
+
 
 function compareArrays(array1, array2) {
     return JSON.stringify(array1) == JSON.stringify(array2)
@@ -107,9 +113,7 @@ function initTaskContentEvents(container, save) {
 
 
 
-function saveInCookies(cookieId, data) {
-    document.cookie = cookieId + "=" + JSON.stringify(data);
-}
+
 
 
 function initSaveAndLoad(container, saveFormat) {
