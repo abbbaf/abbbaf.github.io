@@ -27,7 +27,7 @@ function handleFile(e) {
 
 function read_cell_value(sheet,row,column) {
     const cellAddress = XLSX.utils.encode_cell({ r: row, c: column });
-    return sheet[cellAddress] || sheet[cellAddress].v;
+    return sheet[cellAddress] && sheet[cellAddress].v;
 }
 
 function find(sheet,searchValue) {
