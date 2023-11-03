@@ -3,6 +3,20 @@ const outputDiv = document.getElementById("output");
 
 excelFileInput.addEventListener("change", handleFile);
 
+
+
+function parse(sheet) {
+    //Use if else statement to create the right callback function and starting row and column
+    let callback = null
+    let [startRow, startCol] = [0,0]; // startRow is one less than the actual starting row
+ 
+    if (callback == null)
+        alert("Excel format not supported.");
+ 
+    loopAndDownload(sheet,startRow,startCol,callback);
+}
+
+
 function handleFile(e) {
     const file = e.target.files[0];
 
@@ -13,12 +27,8 @@ function handleFile(e) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: "array" });
             const firstSheetName = workbook.SheetNames[0];
-
-            const firstSheet = workbook.Sheets[firstSheetName];
-            const cellValue = read_cell_value(firstSheet,0,0);
-
-            console.log(cellValue);
-            console.log(find(firstSheet,"שישי"));
+            const sheet = workbook.Sheets[firstSheetName];
+            parse(sheet);
         };
 
         reader.readAsArrayBuffer(file);
@@ -42,16 +52,17 @@ function find(sheet,searchValue) {
     return null;
 }
 
-function downloadData(data) {
-    const blob = new Blob([data], { type: 'text/plain' });
-    const blobUrl = URL.createObjectURL(blob);
-
-    const downloadLink = document.createElement('a');
-    downloadLink.href = blobUrl;
-    downloadLink.download = 'טעינה לרווחית.txt'; 
-    downloadLink.click();
-
-}
+function loopAndDownload(sheet,startRow,startColumn,callback) {
+    let data = "";
+    let tempData = "";
+    let row = startRow;
+    do {
+        row += 1
+        tempData = callback(sheet,row,startColumn);
+        data += tempData;
+    } while (tempData)
+    downloadData(data);
+} 
 
 function downloadData(data) {
     const blob = new Blob([data], { type: 'text/plain' });
@@ -66,6 +77,9 @@ function downloadData(data) {
 
 /*
 
-0,0 
+(simx)^2 + (sin2x)^2 = sin(3x)^2
+
+sinx^2 + 4sinx^2cosx^2 = sin3x^2
+
 
 */
