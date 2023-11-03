@@ -42,6 +42,17 @@ function find(sheet,searchValue) {
     return null;
 }
 
+function downloadData(data) {
+    const blob = new Blob([data], { type: 'text/plain' });
+    const blobUrl = URL.createObjectURL(blob);
+
+    const downloadLink = document.createElement('a');
+    downloadLink.href = blobUrl;
+    downloadLink.download = 'טעינה לרווחית.txt'; 
+    downloadLink.click();
+
+}
+
 /*
 
 0,0 
