@@ -3,6 +3,17 @@ const outputDiv = document.getElementById("output");
 
 excelFileInput.addEventListener("change", handleFiles);
 
+function callbackExample() {
+    //Initialize here
+    return (sheet,startRow,startCol) => {
+        /*
+            Returns one of the following:
+                1. Tab separated data
+                2. Empty string for skipping
+                3. null for end of sheet parsing
+        */
+    }
+}
 
 function getSheetByIndex(workbook,index) {
     const sheetName = workbook.SheetNames[index];
@@ -70,9 +81,10 @@ function loopWorkbook(sheet,startRow,startColumn,callback) {
     let row = startRow;
     do {
         tempData = callback(sheet,row,startColumn);
-        data += tempData + "\n";
+        if (tempData)
+            data += tempData + "\n";
         row += 1
-    } while (tempData);
+    } while (tempData != null);
     return data.slice(0,-1)
 } 
 
