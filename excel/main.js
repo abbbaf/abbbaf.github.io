@@ -1,7 +1,7 @@
 const excelFileInput = document.getElementById("excel-file");
 const outputDiv = document.getElementById("output");
 
-excelFileInput.addEventListener("change", handleFile);
+excelFileInput.addEventListener("change", handleFiles);
 
 
 function getSheetByIndex(workbook,index) {
@@ -10,7 +10,7 @@ function getSheetByIndex(workbook,index) {
 }
 
 
-function getMetaData(workbook) {
+function getMetaData(filename,workbook) {
     const firstSheet = getSheetByIndex(workbook,0);
     const result = { startRow: 0, startCol: 0, sheet: firstSheet, callback: null};
     // Use if else statements to fill the result
@@ -18,32 +18,33 @@ function getMetaData(workbook) {
 }
 
 
-function parse(workbook) {
+function parse(filename,workbook) {
     //Use if else statement to create the right callback function and starting row and column
-    const metaData = getMetaData(workbook);
+    const metaData = getMetaData(filename,workbook);
     if (metaData == null)
         return alert("Excel format not supported.");
     const {startRow, startCol, sheet, callback} = metaData;
     if (callback == null)
-        alert("Excel format not supported.");
+        alert("Excel format not supported. " + filename);
     else
-        loopAndDownload(sheet,startRow,startCol,callback);
+        return loopWorkbook(sheet,startRow,startCol,callback);
 }
 
 
-function handleFile(e) {
-    const file = e.target.files[0];
-
-    if (file) {
+function handleFiles(e) {
+    let data = "";
+    for (const file of e.target.files) {
         const reader = new FileReader();
         reader.onload = function (e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-            parse(workbook);
+            const fileData = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(fileData, { type: "array" });
+            const filename = file.name;
+            data += parse(filename,workbook) + "\n"; 
         };
-
         reader.readAsArrayBuffer(file);
     }
+    if (data)
+        downloadData(data);
 }
 
 function read_cell_value(sheet,row,column) {
@@ -63,7 +64,7 @@ function find(sheet,searchValue) {
     return null;
 }
 
-function loopAndDownload(sheet,startRow,startColumn,callback) {
+function loopWorkbook(sheet,startRow,startColumn,callback) {
     let data = "";
     let tempData = "";
     let row = startRow;
@@ -72,8 +73,7 @@ function loopAndDownload(sheet,startRow,startColumn,callback) {
         data += tempData + "\n";
         row += 1
     } while (tempData);
-    data = data.slice(0,-1)
-    downloadData(data);
+    return data.slice(0,-1)
 } 
 
 function downloadData(data) {
