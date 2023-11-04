@@ -4,16 +4,30 @@ const outputDiv = document.getElementById("output");
 excelFileInput.addEventListener("change", handleFile);
 
 
+function getSheetByIndex(workbook,index) {
+    const sheetName = workbook.SheetNames[index];
+    return workbook.Sheets[sheetName];
+}
 
-function parse(sheet) {
+
+function getMetaData(workbook) {
+    const firstSheet = getSheetByIndex(workbook,0);
+    const result = { startRow: 0, startCol: 0, sheet: firstSheet, callback: null};
+    // Use if else statements to fill thre result
+    return result;
+}
+
+
+function parse(workbook) {
     //Use if else statement to create the right callback function and starting row and column
-    let callback = null
-    let [startRow, startCol] = [0,0]; // startRow is one less than the actual starting row
- 
+    const metaData = getMetaData(workbook);
+    if (metaData == null)
+        return alert("Excel format not supported.");
+    const {startRow, startCol, sheet, callback} = metaData;
     if (callback == null)
         alert("Excel format not supported.");
- 
-    loopAndDownload(sheet,startRow,startCol,callback);
+    else
+        loopAndDownload(sheet,startRow,startCol,callback);
 }
 
 
@@ -22,13 +36,10 @@ function handleFile(e) {
 
     if (file) {
         const reader = new FileReader();
-
         reader.onload = function (e) {
             const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: "array" });
-            const firstSheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[firstSheetName];
-            parse(sheet);
+            parse(workbook);
         };
 
         reader.readAsArrayBuffer(file);
@@ -74,12 +85,3 @@ function downloadData(data) {
     downloadLink.click();
 
 }
-
-/*
-
-(simx)^2 + (sin2x)^2 = sin(3x)^2
-
-sinx^2 + 4sinx^2cosx^2 = sin3x^2
-
-
-*/
