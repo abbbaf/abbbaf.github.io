@@ -13,7 +13,7 @@ function getSheetByIndex(workbook,index) {
 function getMetaData(workbook) {
     const firstSheet = getSheetByIndex(workbook,0);
     const result = { startRow: 0, startCol: 0, sheet: firstSheet, callback: null};
-    // Use if else statements to fill thre result
+    // Use if else statements to fill the result
     return result;
 }
 
@@ -68,10 +68,11 @@ function loopAndDownload(sheet,startRow,startColumn,callback) {
     let tempData = "";
     let row = startRow;
     do {
-        row += 1
         tempData = callback(sheet,row,startColumn);
-        data += tempData;
-    } while (tempData)
+        data += tempData + "\n";
+        row += 1
+    } while (tempData);
+    data = data.slice(0,-1)
     downloadData(data);
 } 
 
