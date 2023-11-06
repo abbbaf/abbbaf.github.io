@@ -5,11 +5,11 @@ excelFileInput.addEventListener("change", handleFiles);
 
 function callbackExample() {
     //Initialize here
-    return (sheet,startRow,startCol) => {
+    return (sheet,row,col) => {
         /*
             Returns one of the following:
-                1. Tab separated data
-                2. Empty string for skipping
+                1. an array
+                2. Empty array for skipping
                 3. null for end of sheet parsing
         */
     }
@@ -23,7 +23,7 @@ function getSheetByIndex(workbook,index) {
 
 function getMetaData(filename,workbook) {
     const firstSheet = getSheetByIndex(workbook,0);
-    const result = { startRow: 0, startCol: 0, sheet: firstSheet, callback: null};
+    const result = { startRow: 0, sheet: firstSheet, callback: null};
     // Use if else statements to fill the result
     return result;
 }
@@ -34,11 +34,11 @@ function parse(filename,workbook) {
     const metaData = getMetaData(filename,workbook);
     if (metaData == null)
         return alert("Excel format not supported.");
-    const {startRow, startCol, sheet, callback} = metaData;
+    const {startRow, sheet, callback} = metaData;
     if (callback == null)
         alert("Excel format not supported. " + filename);
     else
-        return loopWorkbook(sheet,startRow,startCol,callback);
+        return loopWorkbook(sheet,startRow,callback);
 }
 
 
@@ -54,8 +54,10 @@ function handleFiles(e) {
         };
         reader.readAsArrayBuffer(file);
     }
-    if (data)
+    if (data) {
+        data = data.slice(0,-1);
         downloadData(data);
+    }
 }
 
 function read_cell_value(sheet,row,column) {
@@ -75,17 +77,16 @@ function find(sheet,searchValue) {
     return null;
 }
 
-function loopWorkbook(sheet,startRow,startColumn,callback) {
+function loopWorkbook(sheet,startRow,callback) {
     let data = "";
-    let tempData = "";
     let row = startRow;
     do {
-        tempData = callback(sheet,row,startColumn);
-        if (tempData)
-            data += tempData + "\n";
-        row += 1
+        const tempData = callback(sheet,row,startColumn);
+        if (tempData && tempData.length)
+            data += tempData.join('\t') + "\n";
+        row += 1;
     } while (tempData != null);
-    return data.slice(0,-1)
+    return data;
 } 
 
 function downloadData(data) {
