@@ -13,9 +13,11 @@ function inbar(sheet,start_row) {
     let row = start_row;
     let wait_for_receipt = false;
     return () => {
-        const sum = read_cell_value(sheet,row,6);
-        while (!sum)
+        let sum = read_cell_value(sheet,row,6);
+        while (!sum) {
             row += 1
+            sum read_cell_value(sheet,row,6);
+        }
         const sum_with_vat = read_cell_value(sheet,row,9);
         const type = read_cell_value(sheet,row,0);
         const date = read_cell_value(sheet,row,4);
