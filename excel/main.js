@@ -16,7 +16,7 @@ function inbar(sheet,start_row) {
         const type = read_cell_value(sheet,row,0);
         if (type == "דרישה לתשלום")
             return null;
-        while (!type.includes("חשבונית") && !type.includes("קבלה")) {
+        while (!type || (!type.includes("חשבונית") && !type.includes("קבלה"))) {
             row += 1
             type = read_cell_value(sheet,row,0);
         }
@@ -56,9 +56,9 @@ function inbar(sheet,start_row) {
 
 }
 
-function callbackExample() {
+function callbackExample(sheet,start_row) {
     //Initialize here
-    return (sheet,row,col) => {
+    return () => {
         /*
             Returns one of the following:
                 1. an array
