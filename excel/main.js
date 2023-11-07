@@ -22,16 +22,16 @@ function inbar(sheet,start_row) {
         const details = read_cell_value(sheet,row,2);
         const document_number = read_cell_value(sheet,row,1);
         const result = [1,'',sum,sum_with_vat,date,date,document_number,document_number,details];
-        if ("חשבונית" in type) {
+        if (type.includes("חשבונית")) {
             if (!wait_for_receipt) {
-                if ("קבלה" in type)
+                if (type.includes("קבלה"))
                     wait_for_receipt = true;
                 else
                     row += 1;
                 return [150,66,6,...result]
             }           
         }
-        if ("קבלה" in type) {
+        if (type.includes("קבלה")) {
             wait_for_receipt = false;
             payment_type =  read_cell_value(sheet,row,10);
             result[2] = Math.abs(result[2]);
