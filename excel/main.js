@@ -13,13 +13,20 @@ function inbar(sheet,start_row) {
     let row = start_row;
     let wait_for_receipt = false;
     return () => {
+        const type = read_cell_value(sheet,row,0);
+        if (type == "דרישה לתשלום")
+            return null;
+        while (!type.includes("חשבונית" && !type.includes("קבלה")) {
+            row += 1
+            type = read_cell_value(sheet,row,0);
+        }
+            
         let sum = read_cell_value(sheet,row,6);
         while (!sum) {
             row += 1
             sum = read_cell_value(sheet,row,6);
         }
         const sum_with_vat = read_cell_value(sheet,row,9);
-        const type = read_cell_value(sheet,row,0);
         const date = read_cell_value(sheet,row,4);
         const details = read_cell_value(sheet,row,2);
         const document_number = read_cell_value(sheet,row,1);
@@ -45,8 +52,6 @@ function inbar(sheet,start_row) {
             row += 1
             return [...payment_types[payment_type],...result];
         }
-        if ("דרישה לתשלום" in type) 
-            return null;
     }
 
 }
