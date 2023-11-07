@@ -3,7 +3,7 @@ const outputDiv = document.getElementById("output");
 
 excelFileInput.addEventListener("change", handleFiles);
 
-function inbar() {
+function inbar(workbook) {
     const payment_types = {
         "אשראי" : [10,11,66],
         "המחאה" : [12,7,66],
@@ -55,7 +55,7 @@ function inbar() {
 
 }
 
-function callbackExample() {
+function callbackExample(workbook) {
     //Initialize here
     return () => {
         /*
@@ -75,7 +75,7 @@ function getSheetByIndex(workbook,index) {
 
 function getCallback(filename,workbook) {
     if (read_cell_value(sheet,0,10) == "אמצעי תשלום") 
-        return inbar();
+        return inbar(workbook);
     return null
 }
 
