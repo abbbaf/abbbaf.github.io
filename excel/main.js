@@ -127,13 +127,12 @@ function find(sheet,searchValue) {
 function loopWorkbook(callback) {
     let data = "";
     let tempData = true;
-    let i = 0
     do {
-        alert(i++)
         tempData = callback();
         if (tempData)
             data += tempData.join('\t') + "\n";
     } while (tempData != null);
+    console.log(data);
     return data;
 } 
 
