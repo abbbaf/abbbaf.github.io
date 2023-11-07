@@ -126,6 +126,7 @@ function loopWorkbook(callback) {
         const tempData = callback();
         if (tempData)
             data += tempData.join('\t') + "\n";
+        console.log(tempData);
     } while (tempData != null);
     return data;
 } 
