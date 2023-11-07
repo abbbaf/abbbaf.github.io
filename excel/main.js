@@ -20,7 +20,7 @@ function inbar(workbook) {
             row += 1
             type = read_cell_value(sheet,row,0);
             sum = read_cell_value(sheet,row,6);
-            if (type == "דרישה לתשלום") {
+            if (type.includes("דרישה לתשלום")) {
                 return null;
             }
         }
@@ -93,6 +93,8 @@ function parse(filename,workbook) {
 
 function handleFiles(e) {
     let data = "";
+    let filesProccessed = 0;
+    const totalFiles = e.target.files.length;
     for (const file of e.target.files) {
         const reader = new FileReader();
         reader.onload = function (e) {
@@ -100,12 +102,12 @@ function handleFiles(e) {
             const workbook = XLSX.read(fileData, { type: "array" });
             const filename = file.name;
             data += parse(filename,workbook) + "\n"; 
+            if (++filesProccessed === totalFiles && data) {
+                data = data.slice(0,-1);
+                downloadData(data);
+            }
         };
         reader.readAsArrayBuffer(file);
-    }
-    if (data) {
-        data = data.slice(0,-1);
-        downloadData(data);
     }
 }
 
@@ -134,7 +136,6 @@ function loopWorkbook(callback) {
         if (tempData)
             data += tempData.join('\t') + "\n";
     } while (tempData != null);
-    console.log(data);
     return data;
 } 
 
