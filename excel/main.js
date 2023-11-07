@@ -11,7 +11,7 @@ function inbar(sheet,start_row) {
         "מזומן" : [11,8,66]
     }
     let row = start_row;
-    let wait_for_recipt = false;
+    let wait_for_receipt = false;
     return () => {
         const sum = read_cell_value(sheet,row,6);
         while (!sum)
