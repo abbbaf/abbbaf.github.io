@@ -21,9 +21,9 @@ function inbar(sheet,start_row) {
             row += 1
             type = read_cell_value(sheet,row,0);
             sum = read_cell_value(sheet,row,6);
-            console.log(type)
+            alert(type)
         }
-        console.log(type)
+        alert(type)
         const sum_with_vat = read_cell_value(sheet,row,9);
         const date = read_cell_value(sheet,row,4);
         const date2 = read_cell_value(sheet,row,5);
