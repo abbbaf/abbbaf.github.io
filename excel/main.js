@@ -16,7 +16,7 @@ function inbar(sheet,start_row) {
         const type = read_cell_value(sheet,row,0);
         if (type == "דרישה לתשלום")
             return null;
-        while (!type.includes("חשבונית" && !type.includes("קבלה")) {
+        while (!type.includes("חשבונית") && !type.includes("קבלה")) {
             row += 1
             type = read_cell_value(sheet,row,0);
         }
