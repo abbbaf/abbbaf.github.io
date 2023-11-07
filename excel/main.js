@@ -20,8 +20,10 @@ function inbar(sheet,start_row) {
             row += 1
             type = read_cell_value(sheet,row,0);
             sum = read_cell_value(sheet,row,6);
-            if (type == "דרישה לתשלום")
+            if (type == "דרישה לתשלום") {
+                alert(row);
                 return null;
+            }
         }
         const sum_with_vat = read_cell_value(sheet,row,9);
         const date = read_cell_value(sheet,row,4);
