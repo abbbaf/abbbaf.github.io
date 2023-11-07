@@ -126,7 +126,6 @@ function loopWorkbook(callback) {
         const tempData = callback();
         if (tempData)
             data += tempData.join('\t') + "\n";
-        console.log(tempData);
     } while (tempData != null);
     return data;
 } 
@@ -134,7 +133,6 @@ function loopWorkbook(callback) {
 function downloadData(data) {
     const blob = new Blob([data], { type: 'text/plain' });
     const blobUrl = URL.createObjectURL(blob);
-
     const downloadLink = document.createElement('a');
     downloadLink.href = blobUrl;
     downloadLink.download = 'טעינה לרווחית.txt'; 
