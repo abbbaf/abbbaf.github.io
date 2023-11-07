@@ -19,10 +19,18 @@ function inbar() {
         const date = read_cell_value(sheet,row,4);
         const details = read_cell_value(sheet,row,2);
         const document_number = read_cell_value(sheet,row,1);
-        let result = [1,'',sum,sum_with_vat,date,date,document_number,document_number,details];
+        const result = [1,'',sum,sum_with_vat,date,date,document_number,document_number,details];
         if ("חשבונית" in type)
-            return result
+            return [150,66,6,...result]
         if ("קבלה" in type) {
+            payment_type =  read_cell_value(sheet,row,10);
+            result[2] = Math.abs(result[2]);
+            result[3] = Math.abs(result[3]);
+            if ("החזר" in type) {
+                result[2] *= -1
+                result[3] *= -1
+            }
+            return [...payment_types[payment_type],...result];
         }
 
         
