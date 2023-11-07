@@ -122,8 +122,9 @@ function find(sheet,searchValue) {
 
 function loopWorkbook(callback) {
     let data = "";
+    let tempData = true;
     do {
-        const tempData = callback();
+        tempData = callback();
         if (tempData)
             data += tempData.join('\t') + "\n";
     } while (tempData != null);
