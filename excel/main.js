@@ -14,21 +14,20 @@ function inbar(sheet,start_row) {
     let wait_for_receipt = false;
     return () => {
         let type = read_cell_value(sheet,row,0);
-        if (type == "דרישה לתשלום")
-            return null;
         let sum = read_cell_value(sheet,row,6);;
         while (!sum || !type || (!type.includes("חשבונית") && !type.includes("קבלה"))) {
             row += 1
             type = read_cell_value(sheet,row,0);
             sum = read_cell_value(sheet,row,6);
-            alert(type + " " + " " + sum + " " + row)
+            if (type == "דרישה לתשלום")
+                return null;
         }
-        alert(type + " " + row)
         const sum_with_vat = read_cell_value(sheet,row,9);
         const date = read_cell_value(sheet,row,4);
         const date2 = read_cell_value(sheet,row,5);
         const details = read_cell_value(sheet,row,2);
         const document_number = read_cell_value(sheet,row,1);
+        alert(type + " " + document_number);
         const result = [1,'',sum,sum_with_vat,date,date2,document_number,document_number,details];
         if (type.includes("חשבונית")) {
             if (!wait_for_receipt) {
