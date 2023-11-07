@@ -10,7 +10,8 @@ function inbar(sheet,start_row) {
         "העברה בנקאית" : [13,14,66],
         "מזומן" : [11,8,66]
     }
-    let row = start_row;
+    let row = 1;
+    const sheet = getSheetByIndex(workbook,0);
     let wait_for_receipt = false;
     return () => {
         let type = read_cell_value(sheet,row,0);
@@ -72,9 +73,8 @@ function getSheetByIndex(workbook,index) {
 
 
 function getCallback(filename,workbook) {
-    const sheet = getSheetByIndex(workbook,0);
     if (read_cell_value(sheet,0,10) == "אמצעי תשלום") 
-        return inbar(sheet,1);
+        return inbar();
     return null
 }
 
