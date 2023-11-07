@@ -74,6 +74,7 @@ function getSheetByIndex(workbook,index) {
 
 
 function getCallback(filename,workbook) {
+    const sheet = getSheetByIndex(workbook,0);
     if (read_cell_value(sheet,0,10) == "אמצעי תשלום") 
         return inbar(workbook);
     return null
