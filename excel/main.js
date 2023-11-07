@@ -3,6 +3,33 @@ const outputDiv = document.getElementById("output");
 
 excelFileInput.addEventListener("change", handleFiles);
 
+function inbar() {
+    const payment_types = {
+        "אשראי" : [10,11,66],
+        "המחאה" : [12,7,66],
+        "העברה בנקאית" : [13,14,66],
+        "מזומן" : [11,8,66]
+    }
+    return (sheet,row,col) => {
+        const sum = read_cell_value(sheet,row,6);
+        if (!sum)
+            return [];
+        const sum_with_vat = read_cell_value(sheet,row,9);
+        const type = read_cell_value(sheet,row,0);
+        const date = read_cell_value(sheet,row,4);
+        const details = read_cell_value(sheet,row,2);
+        const document_number = read_cell_value(sheet,row,1);
+        let result = [1,'',sum,sum_with_vat,date,date,document_number,document_number,details];
+        if ("חשבונית" in type)
+            return result
+        if ("קבלה" in type) {
+        }
+
+        
+        
+        
+}
+
 function callbackExample() {
     //Initialize here
     return (sheet,row,col) => {
