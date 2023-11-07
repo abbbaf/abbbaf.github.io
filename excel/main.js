@@ -1,6 +1,7 @@
 const excelFileInput = document.getElementById("excel-file");
 const outputDiv = document.getElementById("output");
 
+
 excelFileInput.addEventListener("change", handleFiles);
 
 function inbar(workbook) {
@@ -24,22 +25,13 @@ function inbar(workbook) {
                 return null;
             }
         }
-        const sum_with_vat = read_cell_value(sheet,row,9);
-        const date = read_cell_value(sheet,row,4);
-        const date2 = read_cell_value(sheet,row,5);
-        const details = read_cell_value(sheet,row,2);
-        const document_number = read_cell_value(sheet,row,1);
-        const result = [1,'',sum,sum_with_vat,date,date2,document_number,document_number,details];
-        if (type.includes("חשבונית")) {
-            if (!wait_for_receipt) {
-                if (type.includes("קבלה"))
-                    wait_for_receipt = true;
-                else
-                    row += 1;
-                return [150,66,6,...result]
-            }           
-        }
+        const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
+        let invoice = null;
+        let receipt = null;
+        if (type.includes("חשבונית")) 
+            invoice = [150,66,6,...result]         
         if (type.includes("קבלה")) {
+            receipt =
             wait_for_receipt = false;
             payment_type =  read_cell_value(sheet,row,10);
             result[2] = Math.abs(result[2]);
@@ -48,12 +40,15 @@ function inbar(workbook) {
                 result[2] *= -1
                 result[3] *= -1
             }
-            row += 1
-            return [...payment_types[payment_type],...result];
+            receipt = [...payment_types[payment_type],...result];
         }
+        row += 1;
+        return { data: [invoice, receipt], length: 2}
     }
 
 }
+
+
 
 function callbackExample(workbook) {
     //Initialize here
@@ -65,6 +60,19 @@ function callbackExample(workbook) {
                 3. null for end of sheet parsing
         */
     }
+}
+
+function parseRow(sheet,row,...columns) {
+    let result = [];
+    for (let column of columns) {
+        if (Array.isArray(column))
+            result.push(column[0]);
+        else {
+            const data = read_cell_value(sheet,row,column);
+            result.push(data);
+        }   
+    }
+    return result;
 }
 
 function getSheetByIndex(workbook,index) {
@@ -133,8 +141,13 @@ function loopWorkbook(callback) {
     let tempData = true;
     do {
         tempData = callback();
-        if (tempData)
-            data += tempData.join('\t') + "\n";
+        if (tempData) {
+            for (let dataIndex = 0; dataIndex < tempData.length; dataIndex++) {
+                const resultRow = tempData.data[dataIndex];                
+                if (resultRow == null) continue;
+                data += resultRow.join('\t') + '\n';
+            }
+        }
     } while (tempData != null);
     return data;
 } 
