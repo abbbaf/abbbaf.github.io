@@ -42,7 +42,7 @@ function inbar(sheet,start_row) {
             payment_type =  read_cell_value(sheet,row,10);
             result[2] = Math.abs(result[2]);
             result[3] = Math.abs(result[3]);
-            if ("החזר" in type) {
+            if (type.includes("החזזר")) {
                 result[2] *= -1
                 result[3] *= -1
             }
