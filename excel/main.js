@@ -3,7 +3,7 @@ const outputDiv = document.getElementById("output");
 
 excelFileInput.addEventListener("change", handleFiles);
 
-function inbar(sheet,start_row) {
+function inbar() {
     const payment_types = {
         "אשראי" : [10,11,66],
         "המחאה" : [12,7,66],
@@ -21,7 +21,6 @@ function inbar(sheet,start_row) {
             type = read_cell_value(sheet,row,0);
             sum = read_cell_value(sheet,row,6);
             if (type == "דרישה לתשלום") {
-                alert(row);
                 return null;
             }
         }
@@ -56,7 +55,7 @@ function inbar(sheet,start_row) {
 
 }
 
-function callbackExample(sheet,start_row) {
+function callbackExample() {
     //Initialize here
     return () => {
         /*
