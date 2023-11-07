@@ -1,6 +1,7 @@
 const excelFileInput = document.getElementById("excel-file");
 const outputDiv = document.getElementById("output");
-
+const SKIP = 1;
+const END_OF_PARSING = 2;
 
 excelFileInput.addEventListener("change", handleFiles);
 
@@ -13,21 +14,18 @@ function inbar(workbook) {
     }
     let row = 1;
     const sheet = getSheetByIndex(workbook,0);
-    let wait_for_receipt = false;
     return () => {
         let type = read_cell_value(sheet,row,0);
-        let sum = read_cell_value(sheet,row,6);;
-        while (!sum || !type || (!type.includes("חשבונית") && !type.includes("קבלה"))) {
+        let sum = read_cell_value(sheet,row,6);
+        if (!sum || !type || (!type.includes("חשבונית") && !type.includes("קבלה"))) {
+            if (type && type.includes("דרישה לתשלום"))
+                return END_OF_PARSING;
             row += 1
-            type = read_cell_value(sheet,row,0);
-            sum = read_cell_value(sheet,row,6);
-            if (type.includes("דרישה לתשלום")) {
-                return null;
-            }
+            return SKIP;
         }
         const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
-        let invoice = null;
-        let receipt = null;
+        let invoice = [];
+        let receipt = [];
         if (type.includes("חשבונית")) 
             invoice = [150,66,6,...result]         
         if (type.includes("קבלה")) {
@@ -43,7 +41,7 @@ function inbar(workbook) {
             receipt = [...payment_types[payment_type],...result];
         }
         row += 1;
-        return { data: [invoice, receipt], length: 2}
+        return [...invoice,'\n',...receipt]
     }
 
 }
@@ -54,10 +52,13 @@ function callbackExample(workbook) {
     //Initialize here
     return () => {
         /*
-            Returns one of the following:
-                1. an array
-                2. Empty array for skipping
-                3. null for end of sheet parsing
+            Returns an array for a single row
+            for multiple rows return use '\n' 
+            [row1, \n, row2]
+
+            To skip return SKIP
+            To terminate return END_OF_PARSING;
+
         */
     }
 }
@@ -81,7 +82,7 @@ function getSheetByIndex(workbook,index) {
 }
 
 
-function getCallback(filename,workbook) {
+function getCallback(workbook) {
     const sheet = getSheetByIndex(workbook,0);
     if (read_cell_value(sheet,0,10) == "אמצעי תשלום") 
         return inbar(workbook);
@@ -91,7 +92,7 @@ function getCallback(filename,workbook) {
 
 function parse(filename,workbook) {
     //Use if else statement to create the right callback function and starting row and column
-    const callback = getCallback(filename,workbook);
+    const callback = getCallback(workbook);
     if (callback == null)
         alert("Excel format not supported. " + filename);
     else
@@ -138,17 +139,19 @@ function find(sheet,searchValue) {
 
 function loopWorkbook(callback) {
     let data = "";
-    let tempData = true;
+    let tempData = null;
     do {
         tempData = callback();
-        if (tempData) {
-            for (let dataIndex = 0; dataIndex < tempData.length; dataIndex++) {
-                const resultRow = tempData.data[dataIndex];                
-                if (resultRow == null) continue;
-                data += resultRow.join('\t') + '\n';
-            }
+        if (tempData != SKIP && tempData != END_OF_PARSING) {
+            tempData = tempData.join('\t')
+            tempData = tempData.replace('\t\n\t','\n');
+            tempData = tempData.replace('\t\n','\n')
+            tempData = tempData.replace('\n\t','');
+            if (!tempData.endsWith('\n'))
+                tempData += '\n'
+            data += tempData;
         }
-    } while (tempData != null);
+    } while (tempData != END_OF_PARSING);
     return data;
 } 
 
