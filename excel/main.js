@@ -5,6 +5,23 @@ const END_OF_PARSING = 2;
 
 excelFileInput.addEventListener("change", handleFiles);
 
+
+function callbackExample(workbook) {
+    //Initialize here
+    return () => {
+        /*
+            Returns an array for a single row
+            for multiple rows return use '\n' 
+            [row1, \n, row2]
+
+            To skip return SKIP
+            To terminate return END_OF_PARSING;
+
+        */
+    }
+}
+
+
 function inbar(workbook) {
     const payment_types = {
         "אשראי" : [10,11,66],
@@ -47,21 +64,6 @@ function inbar(workbook) {
 }
 
 
-
-function callbackExample(workbook) {
-    //Initialize here
-    return () => {
-        /*
-            Returns an array for a single row
-            for multiple rows return use '\n' 
-            [row1, \n, row2]
-
-            To skip return SKIP
-            To terminate return END_OF_PARSING;
-
-        */
-    }
-}
 
 function parseRow(sheet,row,...columns) {
     let result = [];
