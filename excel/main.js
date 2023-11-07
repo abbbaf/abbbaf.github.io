@@ -21,7 +21,7 @@ function inbar(sheet,start_row) {
             row += 1
             type = read_cell_value(sheet,row,0);
             sum = read_cell_value(sheet,row,6);
-            alert(type + " " + row)
+            alert(type + " " + " " + sum + " " + row)
         }
         alert(type + " " + row)
         const sum_with_vat = read_cell_value(sheet,row,9);
