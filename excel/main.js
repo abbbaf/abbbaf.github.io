@@ -129,7 +129,7 @@ function loopWorkbook(callback) {
     let tempData = true;
     let i = 0
     do {
-        alet(i++)
+        alert(i++)
         tempData = callback();
         if (tempData)
             data += tempData.join('\t') + "\n";
