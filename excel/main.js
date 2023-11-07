@@ -3,26 +3,36 @@ const outputDiv = document.getElementById("output");
 
 excelFileInput.addEventListener("change", handleFiles);
 
-function inbar() {
+function inbar(sheet,start_row) {
     const payment_types = {
         "אשראי" : [10,11,66],
         "המחאה" : [12,7,66],
         "העברה בנקאית" : [13,14,66],
         "מזומן" : [11,8,66]
     }
-    return (sheet,row,col) => {
+    let row = start_row;
+    let wait_for_recipt = false;
+    return () => {
         const sum = read_cell_value(sheet,row,6);
-        if (!sum)
-            return [];
+        while (!sum)
+            row += 1
         const sum_with_vat = read_cell_value(sheet,row,9);
         const type = read_cell_value(sheet,row,0);
         const date = read_cell_value(sheet,row,4);
         const details = read_cell_value(sheet,row,2);
         const document_number = read_cell_value(sheet,row,1);
         const result = [1,'',sum,sum_with_vat,date,date,document_number,document_number,details];
-        if ("חשבונית" in type)
-            return [150,66,6,...result]
+        if ("חשבונית" in type) {
+            if (!wait_for_receipt) {
+                if ("קבלה" in type)
+                    wait_for_receipt = true;
+                else
+                    row += 1;
+                return [150,66,6,...result]
+            }           
+        }
         if ("קבלה" in type) {
+            wait_for_receipt = false;
             payment_type =  read_cell_value(sheet,row,10);
             result[2] = Math.abs(result[2]);
             result[3] = Math.abs(result[3]);
@@ -30,12 +40,13 @@ function inbar() {
                 result[2] *= -1
                 result[3] *= -1
             }
+            row += 1
             return [...payment_types[payment_type],...result];
         }
+        if ("דרישה לתשלום" in type) 
+            return null;
+    }
 
-        
-        
-        
 }
 
 function callbackExample() {
@@ -56,24 +67,21 @@ function getSheetByIndex(workbook,index) {
 }
 
 
-function getMetaData(filename,workbook) {
-    const firstSheet = getSheetByIndex(workbook,0);
-    const result = { startRow: 0, sheet: firstSheet, callback: null};
-    // Use if else statements to fill the result
-    return result;
+function getCallback(filename,workbook) {
+    const sheet = getSheetByIndex(workbook,0);
+    if (read_cell_value(sheet,0,10) == "אמצעי תשלום") 
+        return inbar(sheet,1);
+    return null
 }
 
 
 function parse(filename,workbook) {
     //Use if else statement to create the right callback function and starting row and column
-    const metaData = getMetaData(filename,workbook);
-    if (metaData == null)
-        return alert("Excel format not supported.");
-    const {startRow, sheet, callback} = metaData;
+    const callback = getCallback(filename,workbook);
     if (callback == null)
         alert("Excel format not supported. " + filename);
     else
-        return loopWorkbook(sheet,startRow,callback);
+        return loopWorkbook(callback);
 }
 
 
@@ -112,14 +120,12 @@ function find(sheet,searchValue) {
     return null;
 }
 
-function loopWorkbook(sheet,startRow,callback) {
+function loopWorkbook(callback) {
     let data = "";
-    let row = startRow;
     do {
-        const tempData = callback(sheet,row,startColumn);
-        if (tempData && tempData.length)
+        const tempData = callback();
+        if (tempData)
             data += tempData.join('\t') + "\n";
-        row += 1;
     } while (tempData != null);
     return data;
 } 
