@@ -16,7 +16,7 @@ function inbar(sheet,start_row) {
         let sum = read_cell_value(sheet,row,6);
         while (!sum) {
             row += 1
-            sum read_cell_value(sheet,row,6);
+            sum = read_cell_value(sheet,row,6);
         }
         const sum_with_vat = read_cell_value(sheet,row,9);
         const type = read_cell_value(sheet,row,0);
