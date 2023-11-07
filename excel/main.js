@@ -10,6 +10,7 @@ function inbar(sheet,start_row) {
         "העברה בנקאית" : [13,14,66],
         "מזומן" : [11,8,66]
     }
+    let i = 0
     let row = start_row;
     let wait_for_receipt = false;
     return () => {
@@ -27,7 +28,8 @@ function inbar(sheet,start_row) {
         const date2 = read_cell_value(sheet,row,5);
         const details = read_cell_value(sheet,row,2);
         const document_number = read_cell_value(sheet,row,1);
-        alert(type + " " + document_number);
+        i += 1
+        alert(type + " " + document_number + " " + i);
         const result = [1,'',sum,sum_with_vat,date,date2,document_number,document_number,details];
         if (type.includes("חשבונית")) {
             if (!wait_for_receipt) {
