@@ -7,6 +7,7 @@ excelFileInput.addEventListener("change", handleFiles);
 
 
 function callbackExample(workbook) {
+    //Test if format is correct, if not return null
     //Initialize here
     return () => {
         /*
@@ -85,9 +86,11 @@ function getSheetByIndex(workbook,index) {
 
 
 function getCallback(workbook) {
-    const sheet = getSheetByIndex(workbook,0);
-    if (read_cell_value(sheet,0,10) == "אמצעי תשלום") 
-        return inbar(workbook);
+    const callbacks = [inbar]
+    for (let callbackFunc of callbacks) {
+        let callback = callbackFunc(workbook);
+        if (callback != null) return callback
+    }
     return null
 }
 
