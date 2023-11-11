@@ -2,67 +2,294 @@ const excelFileInput = document.getElementById("excel-file");
 const outputDiv = document.getElementById("output");
 const SKIP = 1;
 const END_OF_PARSING = 2;
+const ERROR = 3;
 
 excelFileInput.addEventListener("change", handleFiles);
 
-
-function callbackExample(workbook) {
-    //Test if format is correct, if not return null
-    //Initialize here
-    return () => {
-        /*
-            Returns an array for a single row
-            for multiple rows return use '\n' 
-            [row1, \n, row2]
-
-            To skip return SKIP
-            To terminate return END_OF_PARSING;
-
-        */
+class InvalidFormatException extends Error {
+    constructor() {
+        super();
     }
 }
 
+const generators = [
 
-function inbar(workbook) {
-    const payment_types = {
-        "אשראי" : [10,11,66],
-        "המחאה" : [12,7,66],
-        "העברה בנקאית" : [13,14,66],
-        "מזומן" : [11,8,66]
-    }
-    let row = 1;
-    const sheet = getSheetByIndex(workbook,0);
-    return () => {
-        let type = read_cell_value(sheet,row,0);
-        let sum = read_cell_value(sheet,row,6);
-        if (!sum || !type || (!type.includes("חשבונית") && !type.includes("קבלה"))) {
-            if (type && type.includes("דרישה לתשלום"))
-                return END_OF_PARSING;
-            row += 1
-            return SKIP;
+    /*
+    function* generatorExample(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        let row = 1 
+        const columnsOrder = []; 
+        const firstValue = parseRow(sheet,1,...columnsOrder);
+        if (firstValue) yield true;
+        else return false;
+        while (true) { 
+            if (shouldSkip) yield SKIP;
+            if (endOfParsing) return END_OF_PARSING;
+            const result = parseRow(sheet,row++,[1],[''],...columnsOrder);
+            if (result == null) throw new InvalidFormatException(); 
+            yield [...result]
         }
-        const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
-        let invoice = [];
-        let receipt = [];
-        if (type.includes("חשבונית")) 
-            invoice = [150,66,6,...result]         
-        if (type.includes("קבלה")) {
-            receipt =
-            wait_for_receipt = false;
-            payment_type =  read_cell_value(sheet,row,10);
-            result[2] = Math.abs(result[2]);
-            result[3] = Math.abs(result[3]);
-            if (type.includes("החזזר")) {
-                result[2] *= -1
-                result[3] *= -1
+    },
+    */
+
+    function* inbar(workbook) {
+        const sheet = getSheetByIndex(workbook,0);
+        let row = 1;
+        const columnsOrder = [6,9,4,5,1,1,2];
+        const firstValues = parseRow(sheet,row,...columnsOrder);
+        if (firstValues) yield true;
+        else return false;
+        const paymentTypes = {
+            "אשראי" : [10,11,66],
+            "המחאה" : [12,7,66],
+            "העברה בנקאית" : [13,14,66],
+            "מזומן" : [11,8,66]
+        }
+        while (true) {
+            if (row == 219) {
+                for (let i = 0; i <= 10; i++) 
+                    console.log(i + " " + readCellValue(sheet,row,i));
+            } 
+            let type = readCellValue(sheet,row,0);
+            let nextType = readCellValue(sheet,row+1,0);
+            if (!type) {
+                if (!nextType) return END_OF_PARSING;
+                yield SKIP;
+                row++;
+                continue;
             }
-            receipt = [...payment_types[payment_type],...result];
+            const result = parseRow(sheet,row,[1],[''],...columnsOrder);
+            if (result == null) throw new InvalidFormatException();
+            if (result[4] == 0) { 
+                yield SKIP;
+                continue;
+            }
+            if (type.includes("חשבונית")) 
+                yield [150,66,6,...result];
+            if (type.includes("קבלה")) {
+                paymentType =  readCellValue(sheet,row,10);
+                result[2] = Math.abs(result[2]);
+                result[3] = Math.abs(result[3]);
+                if (type.includes("החזזר")) {
+                    result[2] *= -1
+                    result[3] *= -1
+                }
+                yield [...paymentTypes[paymentType],...result];
+            }
+            row++;
         }
-        row += 1;
-        return [...invoice,'\n',...receipt]
-    }
+    },
 
+
+
+    function* agmInvoiceVilla(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        let row = 1 
+        const columnsOrder = [8,8,0,0,6,6,4]; 
+        const firstValue = parseRow(sheet,1,...columnsOrder);
+        if (firstValue && /^3|(85)/.test(firstValue[4]))  yield true;
+        else return false;
+        while (true) {
+            if (!readCellValue(sheet,row,0)) return END_OF_PARSING;
+            const result = parseRow(sheet,row++,[1],[''],...columnsOrder);
+            if (result == null) throw new InvalidFormatException(); 
+            yield [160,66,5,...result]
+        }
+    },
+
+
+    function* agmInvoiceRoyal(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        let row = 1 
+        const columnsOrder = [8,8,0,0,6,6,4]; 
+        const firstValue = parseRow(sheet,1,...columnsOrder);
+        if (firstValue && /^4|(86)/.test(firstValue[4]))  yield true;
+        else return false;
+        while (true) {
+            if (!readCellValue(sheet,row,0)) return END_OF_PARSING;
+            const result = parseRow(sheet,row++,[1],[''],...columnsOrder);
+            if (result == null) throw new InvalidFormatException(); 
+            yield [150,66,6,...result]
+        }
+    },
+
+    function* agmReceipts(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        let row = 1 
+        const columnsOrder = [8,8,0,0,3,4,5]; 
+        const firstValue = parseRow(sheet,1,...columnsOrder);
+        if (firstValue)  yield true;
+        else return false;
+        const paymentTypes = {
+            "BIT" : [10,9,66],
+            "CASH" : [12,8,66],
+            "CC" : [14,11,66],
+            "NOCC" : [14,11,66],
+            "TR" : [10,9,66],
+            "CH" : [9,7,66], 
+        }
+        while (true) {
+            if (!readCellValue(sheet,row,0)) {
+                console.log(row);
+                row++;
+                yield SKIP;
+                continue;
+            }
+            if (readCellValue(sheet,row,0) == "סוג") return END_OF_PARSING;
+            const result = parseRow(sheet,row,[1],[''],...columnsOrder);
+            result[4] = result[4].split(' ')[0];
+            result[5] = result[6].split(' ')[0];
+            if (result == null) throw new InvalidFormatException(); 
+            const paymentTypeArray = paymentTypes[readCellValue(sheet,row,6)];
+            row++;
+            yield [...paymentTypeArray,...result]
+        }
+    },
+
+    function* leumi(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,0,0);
+        if (firstCell && firstCell.includes("בנק לאומי")) yield true;
+        else return false
+        let row = findRow(sheet,"תאריך העסקה")
+        if (row != null) yield true;
+        else return false;
+        row++;
+        const creditcard = readCellValue(sheet,4,0).split(' ')[5];
+        const date = window.prompt("Enter date (dd/mm/yyyy)");
+        while (true) { 
+            if (!readCellValue(sheet,row,0)) {
+                yield [0,date,'',readCellValue(sheet,row,5),creditcard,"חיוב בבנק"];
+                return END_OF_PARSING;
+            }
+            const result = parseRow(sheet,row++,[0],[date],5,[''],[creditcard],1);
+            if (result === null) throw new InvalidFormatException(); 
+            yield result
+        }
+    },
+
+    function* mizrahi(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,0,0);
+        if (firstCell && firstCell.includes("myCcList")) yield true;
+        else return false
+        let row = findRow(sheet,"בית העסק");
+        if (row != null) yield true;
+        else return false;
+        row++;
+        const creditcard = readCellValue(sheet,row,0).split(' ')[13];
+        let totals = {};
+        while (true) {
+            if (!readCellValue(sheet,row,0)) {
+                for (let [date,total] of Object.entries(totals))
+                    yield [0,date,'',parseFloat(total).toFixed(2),creditcard,"חיוב בבנק"];
+                return END_OF_PARSING;
+            }
+            const date = readCellValue(sheet,row,0);
+            const result = parseRow(sheet,row++,[0],[date],4,[''],[creditcard],2);
+            if (result === null) throw new InvalidFormatException(); 
+            if (!(date in totals))
+                totals[date] = 0;
+            totals[date] += result[2];
+            yield result
+        }
+    },
+
+    function* discount(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,0,0);
+        if (firstCell && firstCell.includes("פירוט עסקאות בכרטיסים")) yield true;
+        else return false
+        let row = findRow(sheet,"בית עסק");
+        if (row != null) yield true;
+        else return false;
+        row++;
+        const creditcard = readCellValue(sheet,row,0).split(' ')[1];
+        const date = readCellValue(sheet,row,7);
+        let total = 0;
+        while (true) {
+            if (!readCellValue(sheet,row,1)) {
+                yield [0,date,'',total,creditcard,"חיוב בבנק"];
+                return END_OF_PARSING;
+            }
+            const result = parseRow(sheet,row++,[0],[date],8,[''],[creditcard],1);
+            if (result === null) throw new InvalidFormatException(); 
+            total += result[2]
+            yield result
+        }
+    },
+
+    function* hahayal(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,4,1);
+        if (firstCell && firstCell.includes("עסקאות בשקלים חיוב בתאריך")) yield true;
+        else return false;
+        let row = 6
+        const creditcard = readCellValue(sheet,3,1).split(' ')[0].split(':')[1];
+        const date = firstCell.split(' ')[4];
+        let total = 0;
+        while (true) {
+            if (!readCellValue(sheet,row,1)) {
+                const total = readCellValue(sheet,row+1,4);
+                yield [0,date,'',total,creditcard,"חיוב בבנק"];
+                return END_OF_PARSING;
+            }
+            const result = parseRow(sheet,row++,[0],[date],4,[''],[creditcard],2);
+            if (result === null) throw new InvalidFormatException(); 
+            yield result
+        }
+    },
+    
+    function* poalim(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,2,0);
+        if (firstCell && firstCell.includes("חיובים קודמים")) yield true;
+        else return false
+        let row = findRow(sheet,"שם בית עסק");
+        if (row != null) yield true;
+        else return false;
+        row++;
+        const creditcard = readCellValue(sheet,row,0);
+        let date = readCellValue(sheet,row,1);
+        if (typeof date === 'number')
+            date = excelSerialNumberToDate(date); 
+        let total = 0;
+        let isAbroad = false;
+        while (true) {
+            if (!readCellValue(sheet,row,0)) {
+                if (isAbroad) return END_OF_PARSING;
+                yield [0,date,'',total,creditcard,"חיוב בבנק"];
+                row = findRow(sheet,"מטבע מקורי")+1;
+                isAbroad = true;
+                continue
+            }
+            const sumColumn = isAbroad ? 4 : 5;
+            const result = parseRow(sheet,row++,[0],[date],sumColumn,[''],[creditcard],3);
+            if (result === null) throw new InvalidFormatException(); 
+            yield result
+            if (isAbroad)
+                yield [0,date,'',result[2],creditcard,"חיוב בבנק"];
+            else
+                total += result[2];
+        }
+    },
+
+]
+
+function excelSerialNumberToDate(serialNumber) {
+    const excelBaseDate = new Date('1899-12-30'); // Excel's base date
+    const millisecondsSinceBaseDate = serialNumber * 24 * 60 * 60 * 1000;
+    const resultDate = new Date(excelBaseDate.getTime() + millisecondsSinceBaseDate);
+    const day = resultDate.getDate().toString().padStart(2, '0');
+    const month = (resultDate.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+    const year = resultDate.getFullYear();
+
+    return `${day}/${month}/${year}`;
 }
+
+
+
+
 
 
 
@@ -72,7 +299,8 @@ function parseRow(sheet,row,...columns) {
         if (Array.isArray(column))
             result.push(column[0]);
         else {
-            const data = read_cell_value(sheet,row,column);
+            const data = readCellValue(sheet,row,column);
+            if (data === undefined || data === "") return null;
             result.push(data);
         }   
     }
@@ -85,23 +313,12 @@ function getSheetByIndex(workbook,index) {
 }
 
 
-function getCallback(workbook) {
-    const callbacks = [inbar]
-    for (let callbackFunc of callbacks) {
-        let callback = callbackFunc(workbook);
-        if (callback != null) return callback
+function parse(workbook) {
+    for (let generatorFunc of generators) { 
+        const generator = generatorFunc(workbook);
+        if (generator.next().value) return loopWorkbook(generator);
     }
-    return null
-}
-
-
-function parse(filename,workbook) {
-    //Use if else statement to create the right callback function and starting row and column
-    const callback = getCallback(workbook);
-    if (callback == null)
-        alert("Excel format not supported. " + filename);
-    else
-        return loopWorkbook(callback);
+    throw new InvalidFormatException();
 }
 
 
@@ -112,52 +329,50 @@ function handleFiles(e) {
     for (const file of e.target.files) {
         const reader = new FileReader();
         reader.onload = function (e) {
-            const fileData = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(fileData, { type: "array" });
-            const filename = file.name;
-            data += parse(filename,workbook) + "\n"; 
-            if (++filesProccessed === totalFiles && data) {
-                data = data.slice(0,-1);
-                downloadData(data);
+            try {
+                const fileData = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(fileData, { type: "array" });
+                data += parse(workbook);
+                if (++filesProccessed === totalFiles) {
+                    downloadData(data);
+                }
+            } 
+            catch (error) {
+                if (error instanceof InvalidFormatException) 
+                    return alert("Invalid format in " + file.name);
+                else alert(error);
             }
-        };
+        }
         reader.readAsArrayBuffer(file);
     }
 }
 
-function read_cell_value(sheet,row,column) {
+
+function readCellValue(sheet,row,column) {
     const cellAddress = XLSX.utils.encode_cell({ r: row, c: column });
     return sheet[cellAddress] && sheet[cellAddress].v;
 }
 
-function find(sheet,searchValue) {
+
+function findRow(sheet,searchValue) {
     for (let rowNum = 0; rowNum <= XLSX.utils.decode_range(sheet['!ref']).e.r; rowNum++) {
         for (let colNum = 0; colNum <= XLSX.utils.decode_range(sheet['!ref']).e.c; colNum++) {
             const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: colNum });
             const cellValueObject = sheet[cellAddress];
             if (cellValueObject && cellValueObject.v === searchValue) 
-                return { row: rowNum, column: colNum };
+                return rowNum
         }
     }
     return null;
 }
 
-function loopWorkbook(callback) {
+function loopWorkbook(generator) {
     let data = "";
-    let tempData = null;
-    do {
-        tempData = callback();
-        if (tempData != SKIP && tempData != END_OF_PARSING) {
-            tempData = tempData.join('\t')
-            tempData = tempData.replace('\t\n\t','\n');
-            tempData = tempData.replace('\t\n','\n')
-            tempData = tempData.replace('\n\t','');
-            if (!tempData.endsWith('\n'))
-                tempData += '\n'
-            data += tempData;
-        }
-    } while (tempData != END_OF_PARSING);
-    return data;
+    for (const arrayRow of generator) {
+        if (arrayRow == SKIP) continue;
+        data += arrayRow.join('\t') + '\n'; 
+    }
+    return data
 } 
 
 function downloadData(data) {
