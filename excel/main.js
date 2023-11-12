@@ -274,6 +274,69 @@ const generators = [
         }
     },
 
+
+    function* cal(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,0,0);
+        if (firstCell && firstCell.includes("עסקאות לחשבון לאומי לישראל")) yield true;
+        let row = findRow(sheet,"שם בית עסק");
+        if (row != null) yield true;
+        else return false;
+        row++;
+        const creditcard = readCellValue(sheet,0,0).split('-')[2];
+        const metaData = readCellValue(sheet,findRow(sheet,"לחיוב"),0).split('-');
+        const date = metaData[1].split(':')[0];
+        let total = 0
+        while (true) {
+            if (!readCellValue(sheet,row,1)) {
+                if (readCellValue(sheet,row+1,1)) {
+                    yield SKIP;
+                    row++;
+                    continue;
+                }
+                total = total.toFixed(2);
+                yield [0,date,'',total,creditcard,"חיוב בבנק"];
+                return END_OF_PARSING;
+            }
+            const result = parseRow(sheet,row,[0],[date],3,[''],[creditcard],1);
+            total += parseFloat(readCellValue(sheet,row,3));
+            row++;
+            if (result === null) throw new InvalidFormatException(); 
+            yield result
+        }
+    },
+
+    
+    function* yahav(workbook) {
+        const sheet = getSheetByIndex(workbook,0); 
+        const firstCell = readCellValue(sheet,0,0);
+        if (firstCell && firstCell.includes("בנק יהב")) yield true;
+        let row = findRow(sheet,"תיאור פעולה");
+        if (row != null) yield true;
+        else return false;
+        row++;
+        const metadataRow = findRow(sheet,'כרטיס');
+        const creditcard = readCellValue(sheet,metadataRow,1);
+        let date = readCellValue(sheet,metadataRow,3);
+        if (typeof date === 'number')
+            date = excelSerialNumberToDate(date); 
+        while (true) {
+            if (!readCellValue(sheet,row,1)) {
+                const total = readCellValue(sheet,row,4).toFixed(2);
+                yield [0,date,'',total,creditcard,"חיוב בבנק"];
+                return END_OF_PARSING;
+            }
+            const result = parseRow(sheet,row++,[0],[date],4,[''],[creditcard],1);
+            if (result === null) throw new InvalidFormatException(); 
+            yield result
+        }
+    },
+
+    
+
+
+
+
 ]
 
 function excelSerialNumberToDate(serialNumber) {
@@ -359,7 +422,9 @@ function findRow(sheet,searchValue) {
         for (let colNum = 0; colNum <= XLSX.utils.decode_range(sheet['!ref']).e.c; colNum++) {
             const cellAddress = XLSX.utils.encode_cell({ r: rowNum, c: colNum });
             const cellValueObject = sheet[cellAddress];
-            if (cellValueObject && cellValueObject.v === searchValue) 
+            if (!cellValueObject) continue;
+            const value = cellValueObject.v;
+            if (typeof value == 'string' && value.includes(searchValue) || value === searchValue)
                 return rowNum
         }
     }
