@@ -46,10 +46,6 @@ const generators = [
             "מזומן" : [11,8,66]
         }
         while (true) {
-            if (row == 219) {
-                for (let i = 0; i <= 10; i++) 
-                    console.log(i + " " + readCellValue(sheet,row,i));
-            } 
             let type = readCellValue(sheet,row,0);
             let nextType = readCellValue(sheet,row+1,0);
             if (!type) {
@@ -130,7 +126,6 @@ const generators = [
         }
         while (true) {
             if (!readCellValue(sheet,row,0)) {
-                console.log(row);
                 row++;
                 yield SKIP;
                 continue;
