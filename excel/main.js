@@ -250,6 +250,7 @@ const generators = [
             date = excelSerialNumberToDate(date); 
         let total = 0;
         let isAbroad = false;
+        let abroadDate = null;
         while (true) {
             if (!readCellValue(sheet,row,0)) {
                 if (isAbroad) return END_OF_PARSING;
@@ -263,8 +264,10 @@ const generators = [
             const result = parseRow(sheet,row++,[0],[date],sumColumn,[''],[creditcard],3);
             if (result === null) throw new InvalidFormatException(); 
             yield result
-            if (isAbroad)
-                yield [0,date,'',result[2],creditcard,"חיוב בבנק"];
+            if (isAbroad) {
+                abroadDate = readCellValue(sheet,row,2)
+                yield [0,abroadDate,'',result[2],creditcard,"חיוב בבנק"];
+            }
             else
                 total += result[2];
         }
