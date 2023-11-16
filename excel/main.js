@@ -245,28 +245,28 @@ const generators = [
         else return false;
         row++;
         const creditcard = readCellValue(sheet,row,0);
-        let date = readCellValue(sheet,row,1);
+        let mainDate = readCellValue(sheet,row,1);
         if (typeof date === 'number')
             date = excelSerialNumberToDate(date); 
         let total = 0;
         let isAbroad = false;
-        let abroadDate = null;
+        let date = null;
         while (true) {
             if (!readCellValue(sheet,row,0)) {
                 if (isAbroad) return END_OF_PARSING;
                 total = total.toFixed(2);
-                yield [0,date,'',total,creditcard,"חיוב בבנק"];
+                yield [0,mainDate,'',total,creditcard,"חיוב בבנק"];
                 row = findRow(sheet,"מטבע מקורי")+1;
                 isAbroad = true;
                 continue
             }
             const sumColumn = isAbroad ? 4 : 5;
+            date = readCellValue(sheet,row,1);
             const result = parseRow(sheet,row++,[0],[date],sumColumn,[''],[creditcard],3);
             if (result === null) throw new InvalidFormatException(); 
             yield result
             if (isAbroad) {
-                abroadDate = readCellValue(sheet,row,2)
-                yield [0,abroadDate,'',result[2],creditcard,"חיוב בבנק"];
+                yield [0,date,'',result[2],creditcard,"חיוב בבנק"];
             }
             else
                 total += result[2];
