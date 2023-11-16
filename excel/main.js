@@ -221,9 +221,7 @@ const generators = [
         else return false;
         let row = 6
         const creditcard = readCellValue(sheet,3,1).split(' ')[0].split(':')[1];
-        let date = firstCell.split(' ')[4];
-        const year = "20"+ date.split('/')[2]
-        date = date.slice(0,-2)+year;
+        const date = firstCell.split(' ')[4];
         let total = 0;
         while (true) {
             if (!readCellValue(sheet,row,1)) {
