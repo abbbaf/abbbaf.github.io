@@ -253,6 +253,7 @@ const generators = [
         while (true) {
             if (!readCellValue(sheet,row,0)) {
                 if (isAbroad) return END_OF_PARSING;
+                total = total.toFixed(2);
                 yield [0,date,'',total,creditcard,"חיוב בבנק"];
                 row = findRow(sheet,"מטבע מקורי")+1;
                 isAbroad = true;
