@@ -247,7 +247,7 @@ const generators = [
         const creditcard = readCellValue(sheet,row,0);
         let mainDate = readCellValue(sheet,row,1);
         if (typeof mainDate === 'number')
-            mainDate = excelSerialNumberToDate(date); 
+            mainDate = excelSerialNumberToDate(mainDate); 
         let total = 0;
         let isAbroad = false;
         let date = null;
