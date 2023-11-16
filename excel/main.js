@@ -436,7 +436,7 @@ function loopWorkbook(generator) {
 } 
 
 function downloadData(data) {
-    const blob = new Blob([data], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([data], { type: 'text/plain;charset=windows-1252' });
     const blobUrl = URL.createObjectURL(blob);
     const downloadLink = document.createElement('a');
     downloadLink.href = blobUrl;
