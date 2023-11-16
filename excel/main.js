@@ -262,6 +262,8 @@ const generators = [
             }
             const sumColumn = isAbroad ? 4 : 5;
             date = readCellValue(sheet,row,1);
+            if (typeof date === 'number')
+                date = excelSerialNumberToDate(date); 
             const result = parseRow(sheet,row++,[0],[date],sumColumn,[''],[creditcard],3);
             if (result === null) throw new InvalidFormatException(); 
             yield result
