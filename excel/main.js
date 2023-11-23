@@ -6,7 +6,7 @@ const ERROR = 3;
 const HebreCharacters = 'אבגדהוזחטיךכלםמןנסעףפץצקרשת';
 const Windows1255 = [224,225,226,227,228,229,230,231,232,233,234,235,236,237,238
                     ,239,240,241,242,243,244,245,246,247,248,249,250]
-                    .map(code => tring.fromCharCode(code))
+                    .map(code => String.fromCharCode(code))
 
 excelFileInput.addEventListener("change", handleFiles);
 
