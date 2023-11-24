@@ -32,7 +32,7 @@ const generators = [
 
     function* inbar(workbook) {
         const sheet = getSheetByIndex(workbook,0);
-        if (readCellValue(sheet,0,0) === "סוג מסמך") yield true;
+        if (readCellValue(sheet,0,0) === "סוג מסמך") yield "ענבר";
         else return false;
         const paymentTypes = {
             "אשראי" : [10,11,66],
@@ -64,7 +64,7 @@ const generators = [
 
     function* agmInvoice(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
-        if (readCellValue(sheet,0,6) === "חשבונית") yield true;
+        if (readCellValue(sheet,0,6) === "חשבונית") yield "א.ג.מ אילת";
         else return false;
         const [code1,code2] = /^3|(85)/.test(readCellValue(sheet,1,6)) ? [160,5] : [150,6];
         for (let row = 1; readCellValue(sheet,row,0); row++) 
@@ -74,7 +74,7 @@ const generators = [
 
     function* agmReceipts(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
-        if (readCellValue(sheet,0,6) === "סוג תשלום") yield true;
+        if (readCellValue(sheet,0,6) === "סוג תשלום") yield "א.ג.מ אילת";
         else return false;
         const paymentTypes = {
             "BIT" : [10,9,66],
