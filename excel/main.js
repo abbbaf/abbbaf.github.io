@@ -3,11 +3,6 @@ const outputDiv = document.getElementById("output");
 const END_OF_PARSING = 2;
 const ERROR = 3;
 
-const HebreCharacters = 'אבגדהוזחטיךכלםמןנסעףפץצקרשת';
-const Windows1255 = [224,225,226,227,228,229,230,231,232,233,234,235,236,237,238
-                    ,239,240,241,242,243,244,245,246,247,248,249,250]
-                    .map(code => String.fromCharCode(code))
-
 excelFileInput.addEventListener("change", handleFiles);
 
 class InvalidFormatException extends Error {
@@ -37,10 +32,7 @@ const generators = [
 
     function* inbar(workbook) {
         const sheet = getSheetByIndex(workbook,0);
-        let row = 1;
-        const columnsOrder = [6,9,4,5,1,1,2];
-        const firstValues = parseRow(sheet,row,...columnsOrder);
-        if (firstValues) yield true;
+        if (readCellValue(sheet,0,0) === "סוג מסמך") yield true;
         else return false;
         const paymentTypes = {
             "אשראי" : [10,11,66],
@@ -48,14 +40,10 @@ const generators = [
             "העברה בנקאית" : [13,14,66],
             "מזומן" : [11,8,66]
         }
-        while (true) {
+        for (let row = 1; readCellValue(sheet,row,6); row++) {
             let type = readCellValue(sheet,row,0);
-            if (!type) {
-                if (!readCellValue(sheet,row+1,0)) break;
-                row++;
-                continue;
-            }
-            const result = parseRow(sheet,row,[1],[''],...columnsOrder);
+            if (!type) continue;
+            const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
             if (result[4] == 0) continue;
             if (type.includes("חשבונית")) 
                 yield [150,66,6,...result];
@@ -74,35 +62,19 @@ const generators = [
 
 
 
-    function* agmInvoiceVilla(workbook) {
+    function* agmInvoice(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
-        let row = 1 
-        const columnsOrder = [8,8,0,0,6,6,4]; 
-        const firstValue = parseRow(sheet,1,...columnsOrder);
-        if (firstValue && /^3|(85)/.test(firstValue[4]))  yield true;
+        if (readCellValue(sheet,0,6) === "חשבונית") yield true;
         else return false;
-        while (readCellValue(sheet,row,0)) 
-            yield [160,66,5,...parseRow(sheet,row++,[1],[''],...columnsOrder)];
+        const [code1,code2] = /^3|(85)/.test(readCellValue(sheet,1,6)) ? [160,5] : [150,6];
+        for (let row = 1; readCellValue(sheet,row,0); row++) 
+            yield [code1,66,code2,...parseRow(sheet,row,[1],[''],8,8,0,0,6,6,4)];
     },
 
-
-    function* agmInvoiceRoyal(workbook) {
-        const sheet = getSheetByIndex(workbook,0); 
-        let row = 1 
-        const columnsOrder = [8,8,0,0,6,6,4]; 
-        const firstValue = parseRow(sheet,1,...columnsOrder);
-        if (firstValue && /^4|(86)/.test(firstValue[4]))  yield true;
-        else return false;
-        while (readCellValue(sheet,row,0)) 
-            yield [150,66,6,...parseRow(sheet,row++,[1],[''],...columnsOrder)];
-    },
 
     function* agmReceipts(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
-        let row = 1 
-        const columnsOrder = [8,8,0,0,3,4,5]; 
-        const firstValue = parseRow(sheet,1,...columnsOrder);
-        if (firstValue)  yield true;
+        if (readCellValue(sheet,0,6) === "סוג תשלום") yield true;
         else return false;
         const paymentTypes = {
             "BIT" : [10,9,66],
@@ -112,38 +84,14 @@ const generators = [
             "TR" : [10,9,66],
             "CH" : [9,7,66], 
         }
-        while (readCellValue(sheet,row,0) !== "סוג") {
-            if (!readCellValue(sheet,row,0)) {
-                row++;
-                continue;
-            }
-            const result = parseRow(sheet,row,[1],[''],...columnsOrder);
+        for (let row = 1; readCellValue(sheet,row,0) !== "סוג"; row++) {
+            if (!readCellValue(sheet,row,0)) continue;
+            const result = parseRow(sheet,row,[1],[''],8,8,0,0,3,4,5);
             result[4] = result[4].split(' ')[0];
-            result[5] = result[6].split(' ')[0];
-            const paymentTypeArray = paymentTypes[readCellValue(sheet,row++,6)];
+            result[5] = result[5].split(' ')[0];
+            const paymentTypeArray = paymentTypes[readCellValue(sheet,row,6)];
             yield [...paymentTypeArray,...result]
         }
-    },
-
-    function* leumi(workbook) {
-        const sheet = getSheetByIndex(workbook,0); 
-        const firstCell = readCellValue(sheet,0,0);
-        let row, creditcard;
-        if (firstCell && firstCell.includes("בנק לאומי")
-            && (row = findRow(sheet,"תאריך העסקה")) !== null
-            && (creditcard = getCreditCard(sheet,4,0))) yield true;
-        else return false;
-        row++;
-        const date = window.prompt("Enter date (dd/mm/yyyy)");
-        while (readCellValue(sheet,row,0)) { 
-            let result = parseRow(sheet,row++,[0],[date],5,[''],[creditcard],1);
-            if (result[2] < 0) {
-                result[3] = result[2];
-                result[2] = '';
-            }
-            yield result
-        }
-        return [0,date,'',readCellValue(sheet,row,5),creditcard,"חיוב בבנק"];
     },
 
     function* mizrahi(workbook) {
@@ -152,19 +100,14 @@ const generators = [
         let row, creditcard;
         if (firstCell && firstCell.includes("myCcList")
             && (row = findRow(sheet,"בית העסק")) !== null
-            && (creditcard = getCreditCard(sheet,++row,0)) !== null)  yield true;
+            && (creditcard = getCreditCard(sheet,++row,0)) !== null)  yield creditcard;
         else return false
         let totals = {};
-        while (readCellValue(sheet,row,0)) {
-            let result = parseRow(sheet,row++,[0],0,4,[''],[creditcard],2);
-            if (result[2] < 0) {
-                result[3] = result[2];
-                result[2] = '';
-            }
+        for (; readCellValue(sheet,row,0); row++) {
+            let result = parseRow(sheet,row,[0],0,4,[''],[creditcard],2);
             const date = result[1];
-            if (!(date in totals))
-                totals[date] = 0;
-            totals[date] += result[2];
+            totals[date] = (totals[date] || 0) + result[2];
+            if (result[2] < 0) [result[2],result[3]] = [result[3],-result[2]]
             yield result
         }
         for (let [date,total] of Object.entries(totals))
@@ -177,37 +120,30 @@ const generators = [
         let row, creditcard, date;
         if (firstCell && firstCell.includes("פירוט עסקאות בכרטיסים")
             && (row = findRow(sheet,"בית עסק")) !== null
-            && (creditcard = getCreditCard(sheet,++row,0) !== null)  
-            && (date = readCellValue(sheet,row,7)) !== null) yield true;
+            && ((creditcard = getCreditCard(sheet,++row,0)) !== null)  
+            && (date = readCellValue(sheet,row,7)) !== null) yield creditcard;
         else return false
-        let total = 0;
-        while (readCellValue(sheet,row,1)) {
-            let result = parseRow(sheet,row++,[0],[date],8,[''],[creditcard],1);
-            total += result[2]
-            if (result[2] < 0) {
-                result[3] = result[2];
-                result[2] = '';
-            }
+        for (; readCellValue(sheet,row,1); row++) {
+            let result = parseRow(sheet,row,[0],[date],8,[''],[creditcard],1);
+            if (result[2] < 0) [result[2],result[3]] = [result[3],-result[2]]
             yield result
         }
+        const total = readCellValue(sheet,8,0).match(/[0-9.]+/g)[0];
         yield [0,date,'',total,creditcard,"חיוב בבנק"];
     },
 
     function* hahayal(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
         const firstCell = readCellValue(sheet,4,1);
-        let row = 6
         let creditcard;
         if (firstCell && firstCell.includes("עסקאות בשקלים חיוב בתאריך") 
-            && (creditcard = getCreditCard(sheet,3,1) !== null))  yield true;
+            && ((creditcard = getCreditCard(sheet,3,1)) !== null))  yield creditcard;
         else return false;
         const date = firstCell.split(' ')[4];
-        while (readCellValue(sheet,row,1)) {
-            let result = parseRow(sheet,row++,[0],[date],4,[''],[creditcard],2);
-            if (result[2] < 0) {
-                result[3] = result[2];
-                result[2] = '';
-            }
+        let row;
+        for (row = 6; readCellValue(sheet,row,1); row++) {
+            let result = parseRow(sheet,row,[0],[date],4,[''],[creditcard],2);
+            if (result[2] < 0) [result[2],result[3]] = [result[3],-result[2]]
             yield result
         }
         const total = readCellValue(sheet,row+1,4);
@@ -216,82 +152,69 @@ const generators = [
     
     function* poalim(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
-        const firstCell = readCellValue(sheet,2,0);
-        let row, creditcard
-        if (firstCell && firstCell.includes("חיובים קודמים")
-            && (row = findRow("שם בית עסק")) !== null
-            && (creditcard = getCreditCard(sheet,++row,0) !== null))  yield true;
+        let row;
+        if (readCellValue(sheet,2,0) == "חיובים קודמים"
+            && (row = findRow(sheet,"שם בית עסק")) !== null) yield readCellValue(sheet,0,11);
         else return false
-        let totals = {};
-        let isAbroad = false;
-        let date = null;
+        row++;
         for (let sumColumn = 5; sumColumn >= 4; sumColumn--) {
-            while (readCellValue(sheet,row,0)) {
-                date = excelSerialNumberToDate(readCellValue(sheet,row,1));
-                let result = parseRow(sheet,row++,[0],[date],sumColumn,[''],[creditcard],3);
-                if (result[2] < 0) {
-                    result[3] = result[2];
-                    result[2] = '';
-                }
+            for (; readCellValue(sheet,row,0); row++) {
+                let result = parseRow(sheet,row,[0],1,sumColumn,[''],0,3);
+                result[1] = excelSerialNumberToDate(result[1]);
+                if (result[2] < 0) [result[2],result[3]] = [result[3],-result[2]]
                 yield result
-                if (!(date in total)) totals[date] = 0;
-                totals[date] += result[2];
             }
             row += 5;
         }
-        for (let [date,total] in Object.entries(totals)) 
-            yield [0,date,'',total.toFixed(2),creditcard,"חיוב בבנק"];
+        for (row = 11; readCellValue(sheet,row,0); row++) {
+            let result = parseRow(sheet,row,[0],2,[''],1,0,["חיוב בבנק"]);
+            result[1] = excelSerialNumberToDate(result[1]);
+            yield result;
+        }
 
+        for (row = findRow(sheet,"מטבע")+1; readCellValue(sheet,row,0); row++) {
+            let result = parseRow(sheet,row,[0],2,[''],1,0,["חיוב בבנק"]);
+            result[1] = excelSerialNumberToDate(result[1]);
+            yield result;
+        }
     },
 
 
     function* cal(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
         const firstCell = readCellValue(sheet,0,0);
-        let row, creditcard;
+        let creditcard;
         if (firstCell && firstCell.includes("עסקאות לחשבון לאומי לישראל")
-            && (row = findRow("שם בית עסק")) !== null
-            && (creditcard = getCreditCard(sheet,0,0)) !== null) yield true;
+            && (creditcard = getCreditCard(sheet,0,0)) !== null) yield creditcard;
         else return false;
-        const date = readCellValue(sheet,findRow(sheet,"לחיוב"),0).match(/\d+\/\d+\/\d+/)[0];
-        let total = 0;
-        row++;
-        while (true) {
+        const metaData = readCellValue(sheet,findRow(sheet,"עסקאות לחיוב"),0);
+        const date = metaData.match(/\d+\/\d+\/\d+/)[0];
+        const total = metaData.split(' ')[3].replace(',','');
+        for (let row = 2; true; row++) {
             if (!readCellValue(sheet,row,1)) {
-                if (readCellValue(sheet,row+1,1)) {
-                    row++;
-                    continue;
-                }
+                if (readCellValue(sheet,row+1,1)) continue;
                 break;
             }
-            let result = parseRow(sheet,row++,[0],[date],3,[''],[creditcard],1);
-            total += parseFloat(result[2]);
-            if (result[2] < 0) {
-                result[3] = result[2];
-                result[2] = '';
-            }
+            let result = parseRow(sheet,row,[0],[date],3,[''],[creditcard],1);
+            if (result[2] < 0) [result[2],result[3]] = [result[3],-result[2]]
             yield result
         }
-        yield [0,date,'',total.toFixed(2),creditcard,"חיוב בבנק"];
+        yield [0,date,'',total,creditcard,"חיוב בבנק"];
     },
 
     
     function* yahav(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
         const firstCell = readCellValue(sheet,0,0);
-        let row, creditcard;
+        let creditcard;
         if (firstCell && firstCell.includes("בנק יהב")
-            && (row = findRow("תיאור פעולה")) !== null
-            && (creditcard = getCreditCard(sheet,4,1)) !== null) yield true;
+            && (creditcard = getCreditCard(sheet,4,1)) !== null) yield creditcard;
         else return false;
-        row++;
         let date = excelSerialNumberToDate(readCellValue(sheet,4,3));
-        while (readCellValue(sheet,row,1)) {
-            let result = parseRow(sheet,row++,[0],[date],4,[''],[creditcard],1);
-            if (result[2] < 0) {
-                result[3] = result[2];
-                result[2] = '';
-            }
+        let row;
+        for (row = 9; readCellValue(sheet,row,1); row++) {
+            let result = parseRow(sheet,row,[0],[date],4,[''],[creditcard],1);
+            if (result[2] < 0) [result[2],result[3]] = [result[3],-result[2]]
             yield result
         }
         const total = readCellValue(sheet,row,4).toFixed(2);
@@ -321,10 +244,6 @@ function excelSerialNumberToDate(serialNumber) {
 
 
 
-
-
-
-
 function parseRow(sheet,row,...columns) {
     let result = [];
     for (let column of columns) {
@@ -345,9 +264,44 @@ function getSheetByIndex(workbook,index) {
 function parse(workbook) {
     for (let generatorFunc of generators) { 
         const generator = generatorFunc(workbook);
-        if (generator.next().value) return loopWorkbook(generator);
+        const firstValue = generator.next().value;
+        if (firstValue) {
+            let data = "";
+            for (const arrayRow of generator)
+                data += arrayRow.join('\t') + '\n'; 
+            return [firstValue,data];
+        }
     }
     throw new InvalidFormatException();
+}
+
+function leumi(htmlContent) {
+    const parser = new DOMParser();
+    doc = parser.parseFromString(htmlContent,'text/html');
+    const details = [...doc.querySelectorAll('.xlCell')].map(e => e.textContent.trim())
+                    .filter(Boolean);
+    const sums = [...doc.querySelectorAll('.xlformatNumber')].map(e => e.textContent.trim());
+    const spans = doc.querySelectorAll('span');
+    const creditcard = spans[2].textContent.trim();
+    const [monthName, year] = spans[4].textContent.trim().split(' ');
+    const month = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר'
+                    ,'נובמבר','דצמבר'].indexOf(monthName)+1;
+    let day = doc.querySelector('.xlFull-date').textContent.trim().split('/')[0];
+    day = Number(day)+1;
+    if (!window.confirm(`האם יום החיוב בחודש הוא ב-${day}?`))
+        day = widow.prompt('הכנס את יום החיוב בחודש');
+    const date = `${day}/${month}/${year}`;
+    let data = "";
+    for (let index = 0; index < sums.length; index+=2) {
+        const sum = parseFloat(sums[index+1].replace(/(,|\u200e)/g,'').replace());
+        if (sum > 0)
+            data += `0\t${date}\t${sum}\t\t${creditcard}\t${details[index]}\n`;
+        if (sum < 0)
+            data += `0\t${date}\t\t${-sum}\t${creditcard}\t${details[index]}\n`;
+    }
+    const total = doc.querySelector('.xlcurrencycode80').textContent.replace(',','');
+    data += `0\t${date}\t\t${total}\t${creditcard}\tחיוב בבנק\n`;
+    return [creditcard,data];
 }
 
 
@@ -355,16 +309,25 @@ function handleFiles(e) {
     let data = "";
     let filesProccessed = 0;
     const totalFiles = e.target.files.length;
+    let downloadFileSuffix = null;
     for (const file of e.target.files) {
         const reader = new FileReader();
         reader.onload = function (e) {
             try {
                 const fileData = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(fileData, { type: "array" });
-                data += parse(workbook);
-                if (++filesProccessed === totalFiles) {
-                    downloadData(data);
+                if (fileData[3] === 60) {
+                    const htmlContent = new TextDecoder('utf-8').decode(fileData);
+                    const [creditcard, parsedData] = leumi(htmlContent);
+                    data += parsedData;
+                    downloadFileSuffix = creditcard;
+                } 
+                else {
+                    const workbook = XLSX.read(fileData, { type: "array" });
+                    const [creditcard, parsedData] = parse(workbook);
+                    data += parsedData;
+                    downloadFileSuffix = creditcard;
                 }
+                if (++filesProccessed === totalFiles) downloadData(downloadFileSuffix,data);
             } 
             catch (error) {
                 if (error instanceof InvalidFormatException) 
@@ -397,21 +360,23 @@ function findRow(sheet,searchValue) {
     return null;
 }
 
-function loopWorkbook(generator) {
-    let data = "";
-    for (const arrayRow of generator)
-        data += arrayRow.join('\t') + '\n'; 
-    return data
-} 
 
-function downloadData(data) {
-    HebreCharacters.fromCharCode(
-        (letter,index) => data = data.replace(letter,Windows1255[index]));
-    const blob = new Blob([data], { type: 'text/plain;charset=windows-1255' });
+function downloadData(fileSuffix,data) {
+    const bytesData = new Uint8Array(data.length);
+    let charCode;
+    let index = 0;
+    for (let char of data) {
+        charCode = char.charCodeAt(0);
+        if (charCode <= 255) bytesData[index] = charCode;
+        else if (charCode >= 1488 && charCode <= 1514) bytesData[index] = charCode - 1264;
+        else throw new Error("Unsupported character code: " + charCode);
+        index++;
+    }
+    const blob = new Blob([bytesData], { type: 'application/octet-stream' });
     const blobUrl = URL.createObjectURL(blob);
     const downloadLink = document.createElement('a');
     downloadLink.href = blobUrl;
-    downloadLink.download = 'טעינה לרווחית.txt'; 
+    downloadLink.download = `טעינה לרווחית - ${fileSuffix}.txt`; 
     downloadLink.click();
 
 }
