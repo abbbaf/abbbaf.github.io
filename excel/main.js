@@ -1,7 +1,5 @@
 const excelFileInput = document.getElementById("excel-file");
 const outputDiv = document.getElementById("output");
-const END_OF_PARSING = 2;
-const ERROR = 3;
 
 excelFileInput.addEventListener("change", handleFiles);
 
@@ -12,23 +10,6 @@ class InvalidFormatException extends Error {
 }
 
 const generators = [
-
-    /*
-    function* generatorExample(workbook) {
-        const sheet = getSheetByIndex(workbook,0); 
-        let row = 1 
-        const columnsOrder = []; 
-        const firstValue = parseRow(sheet,1,...columnsOrder);
-        if (firstValue) yield true;
-        else return false;
-        while (true) { 
-            if (endOfParsing) return END_OF_PARSING;
-            const result = parseRow(sheet,row++,[1],[''],...columnsOrder);
-            if (result == null) throw new InvalidFormatException(); 
-            yield [...result]
-        }
-    },
-    */
 
     function* inbar(workbook) {
         const sheet = getSheetByIndex(workbook,0);
@@ -154,7 +135,7 @@ const generators = [
         const sheet = getSheetByIndex(workbook,0); 
         let row;
         if (readCellValue(sheet,2,0) == "חיובים קודמים"
-            && (row = findRow(sheet,"שם בית עסק")) !== null) yield readCellValue(sheet,0,11);
+            && (row = findRow(sheet,"שם בית עסק")) !== null) yield readCellValue(sheet,11,0);
         else return false
         row++;
         for (let sumColumn = 5; sumColumn >= 4; sumColumn--) {
