@@ -32,7 +32,7 @@ const generators = [
                 const paymentType =  readCellValue(sheet,row,10);
                 result[2] = Math.abs(result[2]);
                 result[3] = Math.abs(result[3]);
-                if (type.includes("החזזר")) {
+                if (type.includes("החזר")) {
                     result[2] *= -1
                     result[3] *= -1
                 }
