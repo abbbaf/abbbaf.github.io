@@ -270,7 +270,7 @@ function leumi(htmlContent) {
     let day = doc.querySelector('.xlFull-date').textContent.trim().split('/')[0];
     day = Number(day)+1;
     if (!window.confirm(`האם יום החיוב בחודש הוא ב-${day}?`))
-        day = widow.prompt('הכנס את יום החיוב בחודש');
+        day = window.prompt('הכנס את יום החיוב בחודש');
     const date = `${day}/${month}/${year}`;
     let data = "";
     for (let index = 0; index < sums.length; index+=2) {
