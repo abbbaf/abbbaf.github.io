@@ -186,7 +186,7 @@ const generators = [
     
     function* yahav(workbook) {
         const sheet = getSheetByIndex(workbook,0); 
-        const firstCell = readCellValue(sheet,0,0);
+        const firstCell = readCellValue(sheet,0,5);
         let creditcard;
         if (firstCell && firstCell.includes("בנק יהב")
             && (creditcard = getCreditCard(sheet,4,1)) !== null) yield creditcard;
