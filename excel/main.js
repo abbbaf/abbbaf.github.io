@@ -11,7 +11,7 @@ class InvalidFormatException extends Error {
 
 const generators = [
 
-    function* inbar(workbook) {
+  /*  function* inbar(workbook) {
         const sheet = getSheetByIndex(workbook,0);
         if (readCellValue(sheet,0,0) === "סוג מסמך") yield "ענבר";
         else return false;
@@ -28,6 +28,36 @@ const generators = [
             if (result[4] == 0) continue;
             if (type.includes("חשבונית")) 
                 yield [150,66,6,...result];
+            if (type.includes("קבלה")) {
+                const paymentType =  readCellValue(sheet,row,10);
+                result[2] = Math.abs(result[2]);
+                result[3] = Math.abs(result[3]);
+                if (type.includes("החזר")) {
+                    result[2] *= -1
+                    result[3] *= -1
+                }
+                yield [...paymentTypes[paymentType],...result];
+            }
+        }
+    },*/
+
+        function* nehami(workbook) {
+        const sheet = getSheetByIndex(workbook,0);
+        if (readCellValue(sheet,0,0) === "סוג מסמך") yield "נחמי";
+        else return false;
+        const paymentTypes = {
+            "אשראי" : [12,11,100],
+            "המחאה" : [15,7,100],
+            "העברה בנקאית" : [14,14,66],
+            "מזומן" : [13,8,66]
+        }
+        for (let row = 1; readCellValue(sheet,row,6); row++) {
+            let type = readCellValue(sheet,row,0);
+            if (!type) continue;
+            const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
+            if (result[4] == 0) continue;
+            if (type.includes("חשבונית")) 
+                yield [150,100,6,...result];
             if (type.includes("קבלה")) {
                 const paymentType =  readCellValue(sheet,row,10);
                 result[2] = Math.abs(result[2]);
