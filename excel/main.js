@@ -349,7 +349,7 @@ function downloadData(fileSuffix,data) {
     for (let char of data) {
         charCode = char.charCodeAt(0);
         if (charCode <= 255) bytesData[index] = charCode;
-        else if (charCode >= 1488 && charCode <= 1524) bytesData[index] = charCode - 1264;
+        else if (charCode >= 1488 && charCode <= 1524 || charCode == 8236) bytesData[index] = charCode - 1264;
         else throw new Error("Unsupported character code: " + charCode);
         index++;
     }
