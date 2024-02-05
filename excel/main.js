@@ -11,9 +11,9 @@ class InvalidFormatException extends Error {
 
 const generators = [
 
-  /*  function* inbar(workbook) {
+  function* inbar(workbook) {
         const sheet = getSheetByIndex(workbook,0);
-        if (readCellValue(sheet,0,0) === "סוג מסמך") yield "ענבר";
+        if (readCellValue(sheet,0,0) === "סוג מסמך" && window.confirm("הכנסות של ענבר?")) yield "ענבר";
         else return false;
         const paymentTypes = {
             "אשראי" : [10,11,66],
@@ -39,7 +39,7 @@ const generators = [
                 yield [...paymentTypes[paymentType],...result];
             }
         }
-    },*/
+    },
 
         function* nehami(workbook) {
         const sheet = getSheetByIndex(workbook,0);
