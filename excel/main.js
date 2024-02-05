@@ -48,8 +48,8 @@ const generators = [
         const paymentTypes = {
             "אשראי" : [12,11,100],
             "המחאה" : [15,7,100],
-            "העברה בנקאית" : [14,14,66],
-            "מזומן" : [13,8,66]
+            "העברה בנקאית" : [14,14,100],
+            "מזומן" : [13,8,100]
         }
         for (let row = 1; readCellValue(sheet,row,6); row++) {
             let type = readCellValue(sheet,row,0);
