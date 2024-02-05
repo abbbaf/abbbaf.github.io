@@ -25,7 +25,7 @@ const generators = [
             let type = readCellValue(sheet,row,0);
             if (!type) continue;
             const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
-            if (result[4] == 0) continue;
+            if (result[2] == 0) continue;
             if (type.includes("חשבונית")) 
                 yield [150,66,6,...result];
             if (type.includes("קבלה")) {
@@ -55,7 +55,7 @@ const generators = [
             let type = readCellValue(sheet,row,0);
             if (!type) continue;
             const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
-            if (result[4] == 0) continue;
+            if (result[2] == 0) continue;
             if (type.includes("חשבונית")) 
                 yield [150,100,6,...result];
             if (type.includes("קבלה")) {
