@@ -21,11 +21,11 @@ const generators = [
             "העברה בנקאית" : [13,14,66],
             "מזומן" : [11,8,66]
         }
-        for (let row = 1; readCellValue(sheet,row,6); row++) {
+        for (let row = 1; readCellValue(sheet,row,6) || readCellValue(sheet,row,6) === 0; row++) {
             let type = readCellValue(sheet,row,0);
             if (!type) continue;
             const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
-            if (result[2] == 0) continue;
+            if (!result[2]) continue;
             if (type.includes("חשבונית")) 
                 yield [150,66,6,...result];
             if (type.includes("קבלה")) {
@@ -51,11 +51,11 @@ const generators = [
             "העברה בנקאית" : [14,14,100],
             "מזומן" : [13,8,100]
         }
-        for (let row = 1; readCellValue(sheet,row,6); row++) {
+        for (let row = 1; readCellValue(sheet,row,6) || readCellValue(sheet,row,6) === 0; row++) {
             let type = readCellValue(sheet,row,0);
             if (!type) continue;
             const result = parseRow(sheet,row,[1],[''],6,9,4,5,1,1,2);
-            if (result[2] == 0) continue;
+            if (!result[2]) continue;
             if (type.includes("חשבונית")) 
                 yield [150,100,6,...result];
             if (type.includes("קבלה")) {
