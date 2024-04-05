@@ -378,9 +378,8 @@ function downloadData(fileSuffix,data) {
     let index = 0;
     for (let char of data) {
         charCode = char.charCodeAt(0);
-        if (charCode <= 255 || charCode > 1524) bytesData[index] = charCode;
-        else if (charCode >= 1488 && charCode <= 1524) bytesData[index] = charCode - 1264;
-        else throw new Error("Unsupported character code: " + charCode);
+        if (charCode >= 1488 && charCode <= 1524) bytesData[index] = charCode - 1264;
+        else bytesData[index] = charCode;
         index++;
     }
     const blob = new Blob([bytesData], { type: 'application/octet-stream' });
