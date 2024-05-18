@@ -444,7 +444,7 @@ function playGame() {
 
                 player.checkDoors();
 
-                if (player.died) {
+                if (player.died && player.element == "water") {
                     died = true;
                 }
             });
