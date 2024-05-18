@@ -1,0 +1,215 @@
+#mycanvas {
+  border: 1px solid black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+.intro {
+  width: 100%;
+  /* display: flex; */
+  /* display: none; */
+}
+
+.container {
+  max-width: 1300px;
+  max-height: 672px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.background {
+  max-height: 672px;
+}
+
+.title {
+  position: absolute;
+  top: 20%;
+  left: 20%;
+  max-width: 50%;
+}
+
+.introButton {
+  position: absolute;
+  top: 60%;
+  left: 40%;
+  margin-top: 20px;
+}
+
+#start,
+#designer {
+  width: 150px;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  display: flex;
+  flex-direction: column;
+  text-align: center;
+}
+
+#start:hover,
+#designer:hover {
+  background-color: #45a049;
+}
+
+.music {
+  position: absolute;
+  top: 10%;
+  left: 80%;
+  width: 2%;
+}
+
+.music:hover {
+  cursor: pointer;
+}
+
+.characters {
+  position: absolute;
+  top: 80%;
+  left: 7%;
+  width: 80%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.characters .character {
+  width: 100px;
+}
+
+.mapEditor {
+  display: none;
+}
+
+.elements {
+  /* position: absolute; */
+  /* flex-basis: 1%; */
+  /* display: flex;
+  flex-direction: column; */
+  max-height: 672px;
+  overflow-y: scroll;
+  margin-left: 100px;
+  background-color: gray;
+}
+
+.elements img {
+  display: block;
+  width: 50px;
+  height: 50px;
+  margin: 5px;
+}
+
+.elements img.active {
+  border: 2px solid cyan;
+  border-radius: 5px;
+}
+
+.mapCanvas {
+  border: 1px solid black;
+  position: relative;
+  /*top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); */
+}
+
+.editor--buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.btn {
+  border: 2px solid cyan;
+  border-radius: 5px;
+  font-size: 20px;
+}
+
+.level-selector {
+  display: none;
+}
+
+.level-selector .container {
+  width: 1300px;
+  height: 672px;
+  margin: 0 auto;
+  padding-top: 5%;
+  padding-left: 5%;
+  display: flex;
+  justify-content: flex-start;
+  gap: 50px;
+  flex-wrap: wrap;
+  background-image: url("./../../../spritesheet/intro/TempleHallForest.jpg");
+  /* justify-content: space-between; */
+}
+
+.level {
+  width: 30%;
+  margin-bottom: 20px;
+}
+
+.level-selector button {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #4caf50;
+  border: 2px solid yellow;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #45a049;
+}
+
+.menu {
+  position: absolute;
+  top: 50%;
+  left: 45%;
+  transform: translate(-50%, -50%);
+  display: none;
+}
+
+.menu .board {
+  width: 600px;
+  height: 400px;
+}
+
+.menu .score {
+  width: 350px;
+  height: 150px;
+  position: absolute;
+  top: 25%;
+  left: 20%;
+  display: none;
+}
+
+.menu .score.active {
+  display: block;
+}
+
+.menu .options {
+  display: flex;
+  position: absolute;
+  top: 70%;
+  left: 20%;
+  gap: 150px;
+}
+
+.menu .options img {
+  width: 100px;
+  height: 50px;
+  display: none;
+}
+
+.menu .options img.active {
+  display: inline;
+}
