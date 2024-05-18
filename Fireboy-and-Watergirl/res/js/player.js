@@ -992,7 +992,7 @@ export class Player extends Sprite {
                         this.hitbox.legs.position.x > block.hitbox.position.x
                     ) {
                         //end
-                        this.died = true;
+                        if (this.element == "water") this.died = true;
                         break;
                     }
 
@@ -1140,7 +1140,7 @@ export class Player extends Sprite {
                             block.hitbox.position.y + block.hitbox.height
                     ) {
                         //end
-                        this.died = true;
+                        if (this.element == "water") this.died = true;
                         break;
                     }
 
