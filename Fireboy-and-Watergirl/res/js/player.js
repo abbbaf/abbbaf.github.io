@@ -984,6 +984,7 @@ export class Player extends Sprite {
                     }
                     //check pond
                     if (
+                        this.element == "water" &&
                         block.shape == "pondTriangle" &&
                         this.element != block.element &&
                         this.hitbox.position.y + this.hitbox.height >=
@@ -992,7 +993,7 @@ export class Player extends Sprite {
                         this.hitbox.legs.position.x > block.hitbox.position.x
                     ) {
                         //end
-                        if (this.element == "water") this.died = true;
+                        this.died = true;
                         break;
                     }
 
@@ -1133,6 +1134,7 @@ export class Player extends Sprite {
                 else if (block.shape == "pond") {
                     //check pond
                     if (
+                        this.element == "water" && 
                         this.element != block.element &&
                         this.hitbox.position.y + this.hitbox.height >=
                             block.hitbox.position.y + 10 &&
@@ -1140,7 +1142,7 @@ export class Player extends Sprite {
                             block.hitbox.position.y + block.hitbox.height
                     ) {
                         //end
-                        if (this.element == "water") this.died = true;
+                        this.died = true;
                         break;
                     }
 
