@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         indices.push(i)
                 const orderedFiles = []
                 for (let i = 0; i < files.length; i++)
-                    orderedFiles.push(files[indices[i]])
+                    orderedFiles.push(files[indices[i+1]])
                 
 
                 const mergedPdf = await PDFDocument.create();
