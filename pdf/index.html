@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tool-card {
+            @apply bg-white shadow-xl rounded-xl p-6 md:p-8 transition-all duration-300 hover:shadow-2xl;
+        }
+        .btn {
+            @apply px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+        }
+        .file-input {
+            @apply block w-full text-sm text-slate-500
+                   file:mr-4 file:py-2 file:px-4
+                   file:rounded-lg file:border-0
+                   file:text-sm file:font-semibold
+                   file:bg-blue-50 file:text-blue-700
+                   hover:file:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg border border-gray-300 cursor-pointer;
+        }
+        .status-message {
+            @apply mt-4 text-sm p-3 rounded-md;
+        }
+        .status-success {
+            @apply bg-green-100 text-green-700;
+        }
+        .status-error {
+            @apply bg-red-100 text-red-700;
+        }
+        .status-info {
+            @apply bg-blue-100 text-blue-700;
+        }
+        /* Custom spinner */
+        .spinner {
+            @apply inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white;
+            margin-right: 0.5rem; /* 8px */
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-100 to-sky-100 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div class="w-full max-w-4xl space-y-8">
+        <header class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800">PDF Toolbox</h1>
+            <p class="text-slate-600 mt-2 text-lg">Simple tools to manage your PDF files directly in your browser.</p>
+        </header>
+
+        <section id="merge-section" class="tool-card">
+            <h2 class="text-2xl font-semibold text-slate-700 mb-1">Merge PDFs</h2>
+            <p class="text-slate-500 mb-6 text-sm">Combine multiple PDF files into a single document.</p>
+            <div class="space-y-4">
+                <input type="file" id="merge-files" class="file-input" multiple accept=".pdf">
+                <button id="merge-btn" class="btn w-full md:w-auto">
+                    <span class="btn-text">Merge PDFs</span>
+                    <span class="spinner hidden"></span>
+                </button>
+                <div id="merge-status" class="status-message hidden"></div>
+            </div>
+        </section>
+
+        <section id="split-section" class="tool-card">
+            <h2 class="text-2xl font-semibold text-slate-700 mb-1">Split PDF</h2>
+            <p class="text-slate-500 mb-6 text-sm">Split each uploaded PDF into individual pages. Results are bundled into a ZIP file.</p>
+            <div class="space-y-4">
+                <input type="file" id="split-files" class="file-input" multiple accept=".pdf">
+                <button id="split-btn" class="btn w-full md:w-auto">
+                    <span class="btn-text">Split PDFs</span>
+                    <span class="spinner hidden"></span>
+                </button>
+                <div id="split-status" class="status-message hidden"></div>
+            </div>
+        </section>
+
+
+    </div>
+
+    <footer class="text-center mt-12 pb-6">
+        <p class="text-sm text-slate-500">PDF operations are performed client-side. Your files are not uploaded to any server.</p>
+    </footer>
+
+    <script src="script.js" defer></script>
+</body>
+</html>
