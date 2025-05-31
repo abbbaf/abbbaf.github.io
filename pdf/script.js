@@ -60,14 +60,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 const fileList = files.map((file,index) => `${index}: ${file.name}`).join('\n')
-                const input = prompt(fileList)
-                const indices = input.split();
+                const input = prompt(fileList) || "0"
+                const indices = input.split().map(parseInt);
                 for (let i = 0; i < files.length; i++)
                     if (!indices.includes(i)) 
                         indices.push(i)
                 const orderedFiles = []
                 for (let i = 0; i < files.length; i++)
-                    orderedFiles.push(files[indices[i+1]])
+                    orderedFiles.push(files[indices[i]])
                 
 
                 const mergedPdf = await PDFDocument.create();
