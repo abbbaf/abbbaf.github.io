@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>ממיר קובץ שכר</title>
+</head>
+<body dir="rtl">
+  <h2>ממיר קובץ אקסל לקובץ לטעינה לתוכנת שכר</h2>
+  <input type="file" id="fileInput" accept=".xlsx" onchange="processFile()" />
+
+  <div id="mappingUI" style="display:none;">
+     <h3>מיפוי עמודות</h3>
+    <form id="mappingForm">
+        
+    </form>
+    <button onclick="saveMapping()">שמור מיפוי</button>
+    </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
