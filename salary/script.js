@@ -10,6 +10,7 @@ function loadAliasesFromStorage(map) {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
     const value = localStorage.getItem(key);
+    if (value == "0") continue
     map[key] = JSON.parse(value)
   }
 }
@@ -23,8 +24,13 @@ function createNewRecord(colName) {
         2 - הכנסות זקופות
         3 - ניכויים
         4 - סה"כ ימים/שעות עבודה 
+        0 - לא רלוונטי
         `))
-    if (![1,2,3,4].includes(recordNum)) return createNewRecord(colName)
+    if (![0,1,2,3,4].includes(recordNum)) return createNewRecord(colName)
+    if (recordNum == 0) {
+      localStorage.setItem(colName,JSON."0")
+      continue
+    }
     const salaryCode = recordNum == 4 ?
         parseInt(prompt(`
         "${colName}"
