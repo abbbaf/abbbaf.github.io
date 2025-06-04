@@ -27,7 +27,7 @@ function createNewRecord(colName) {
         `))
     if (![0,1,2,3,4].includes(recordNum)) return createNewRecord(colName)
     if (recordNum == 0) {
-      localStorage.setItem(colName,JSON."0")
+      localStorage.setItem(colName,"0")
       salaryComponentMap[colName] = 0
       return
     }
