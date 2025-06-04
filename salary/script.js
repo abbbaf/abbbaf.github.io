@@ -103,9 +103,8 @@ loadAliasesFromStorage(salaryComponentMap)
           const data = row[j];
           if (j === employeeIdIndex || data == null || data === "" || isNaN(Number(data)) || data == 0) continue;
           if (!salaryComponentMap.hasOwnProperty(colName)) createNewRecord(colName)
-          const componentMetaData = salaryComponentMap[colName.trim()];
+          const componentMetaData = salaryComponentMap[colName];
           if (componentMetaData == 0) continue
-          console.log(componentMetaData,colName)
           outputRows.push([month,employeeId,...componentMetaData,data])
         }
       }
