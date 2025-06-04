@@ -105,7 +105,7 @@ loadAliasesFromStorage(salaryComponentMap)
           if (!salaryComponentMap.hasOwnProperty(colName)) createNewRecord(colName)
           const componentMetaData = salaryComponentMap[colName.trim()];
           if (componentMetaData == 0) continue
-          console.log(componentMetaData)
+          console.log(componentMetaData,colName)
           outputRows.push([month,employeeId,...componentMetaData,data])
         }
       }
