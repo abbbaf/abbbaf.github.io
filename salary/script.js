@@ -10,7 +10,6 @@ function loadAliasesFromStorage(map) {
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i)
     const value = localStorage.getItem(key);
-    if (value == "0") continue
     map[key] = JSON.parse(value)
   }
 }
@@ -29,7 +28,8 @@ function createNewRecord(colName) {
     if (![0,1,2,3,4].includes(recordNum)) return createNewRecord(colName)
     if (recordNum == 0) {
       localStorage.setItem(colName,JSON."0")
-      continue
+      salaryComponentMap[colName] = 0
+      return
     }
     const salaryCode = recordNum == 4 ?
         parseInt(prompt(`
@@ -104,6 +104,7 @@ loadAliasesFromStorage(salaryComponentMap)
           if (j === employeeIdIndex || data == null || data === "" || isNaN(Number(data)) || data == 0) continue;
           if (!salaryComponentMap.hasOwnProperty(colName)) createNewRecord(colName)
           const componentMetaData = salaryComponentMap[colName.trim()];
+          if (componentMetaData == 0) continue
           outputRows.push([month,employeeId,...componentMetaData,data])
         }
       }
