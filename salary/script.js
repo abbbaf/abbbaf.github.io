@@ -46,7 +46,7 @@ function createNewRecord(colName) {
         `)) 
     if (isNaN(salaryCode)) return createNewRecord(colName)
     componentMetaData = [recordNum,salaryCode,1]
-    if (recordNum == 4 || colName.includes("שעות")) componentMetaData.pop()
+    if (recordNum == 4 || prompt("האם הנתון מייצג כמות שעות/ימים?")) componentMetaData.pop()
     salaryComponentMap[colName] = componentMetaData
     localStorage.setItem(colName,JSON.stringify(componentMetaData))
 }
