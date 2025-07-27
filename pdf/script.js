@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const fileList = files.map((file,index) => `${index}: ${file.name}`).join('\n')
                 const input = prompt(fileList) || "0"
-                const indices = input.split().map(parseInt);
+                const indices = input.split(" ").map(parseInt);
                 for (let i = 0; i < files.length; i++)
                     if (!indices.includes(i)) 
                         indices.push(i)
