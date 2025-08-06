@@ -96,10 +96,11 @@ loadAliasesFromStorage(salaryComponentMap)
       for (let i = headerRowIndex + 1; i < rows.length; i++) {
         const row = rows[i];
         const employeeId = row[employeeIdIndex];
-        if (!employeeId) {
+        if (employeeId == 0) {
           if (confirm("חסר מספר עובד")) continue
           else break
         }
+        if (!employeeId) break
   
         for (let j = 0; j < headers.length; j++) {
           const colName = headers[j];
