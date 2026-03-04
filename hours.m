@@ -1,0 +1,92 @@
+let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table) =>
+
+    let
+
+        Hours = (number_of_hours) => #duration(0,number_of_hours,0,0),
+        
+        TimeDifference = (time1, time2) => if time1 >= time2 then time1-time2 else time1 - time2 + Hours(24),
+
+        max_regular_hours = #duration(0,8,0,0), 
+
+        transform_types = Table.TransformColumnTypes(hours_table,{
+            {"Entry Time", type time },
+            { "Exit Time", type time }
+        }),
+
+        add_total_hours = Table.AddColumn(transform_types,"Total Hours",each TimeDifference([Exit Time],[Entry Time])),
+        add_night_hours = Table.AddColumn(add_total_hours, "Night Hours", each 
+                                if [Exit Time] > Hours(22) or [Exit Time] < [Entry Time] 
+                                    then TimeDifference([Exit Time],List.Max({Hours(22),[Entry Time]}))
+                                else if [Entry Time] < Hours(6) 
+                                    then TimeDifference(List.Min({Hours(6),[Exit Time]}),[Entry Time])
+                                else Hours(0)),
+                                
+        add_shabat_table_column = Table.NestedJoin(add_night_hours,"Date",shabat_and_holiday_table,"Date","Shabat"),
+        expand_shabat_column = Table.ExpandTableColumn(add_shabat_table_column,"Shabat",{"Shabat Entry Time", "Shabat Exit Time"}),
+
+        add_shabat_hours = Table.AddColumn(expand_shabat_column,"Shabat Hours",each
+            if [Shabat Entry Time] <> null then 
+                if [Exit Time] > [Shabat Entry Time] or [Entry Time] > [Exit Time]
+                    then TimeDifference([Exit Time],List.Max({[Entry Time],[Shabat Entry Time]}))
+                else Hours(0)
+            else if [Shabat Exit Time] <> null then
+                if [Entry Time] < [Shabat Exit Time] then
+                    if [Entry Time] > [Exit Time]
+                        then TimeDifference(List.Min({[Exit Time],[Shabat Exit Time]}),[Entry Time])
+                    else TimeDifference([Shabat Exit Time],[Entry Time])
+                else Hours(0)
+            else Hours(0)
+        ),
+
+        add_index = Table.AddIndexColumn(add_shabat_hours, "Index"),
+
+        main_table = add_index,
+
+        group_by_dates = Table.Group(main_table,{"Worker Name","Date"},{ 
+            {"Total Hours", each List.Sum([Total Hours])},
+            {"Index", each List.Max([Index])},
+            {"Has Night Hours", each List.Sum([Night Hours]) >= Hours(2)},
+            {"Is Friday Or Holiday Evening", each List.First([Shabat Entry Time]) <> null}
+        }),
+
+    add_week_of_month = Table.AddColumn(group_by_dates,"Week Of Month",each Date.WeekOfMonth([Date])),
+        add_regular_hours = Table.AddColumn(add_week_of_month,"Regular Hours", each
+            List.Min({
+                if [Has Night Hours] or [Is Friday Or Holiday Evening] then Hours(7) else max_regular_hours,
+                [Total Hours]})
+        ),
+
+        group_by_weeks = Table.Group(add_regular_hours,{ "Week Of Month", "Worker Name" },{
+            { "Regular Hours 42 Correction", each List.Min({Hours(42)-List.Sum([Regular Hours]),Hours(0)}) },
+            { "Index", each List.Max([Index]) }
+        }),
+
+        join_weeks_and_dates = Table.NestedJoin(add_regular_hours,"Index",group_by_weeks,"Index",{"Regular Hours 42 Correction"}, "Extra"),
+        expand_dates_table = Table.ExpandTableColumn(join_weeks_and_dates,"Extra",{"Regular Hours 42 Correction"}),
+
+        add_final_regular_hours = Table.AddColumn(expand_dates_table,"Final Regular Hours",
+                                                    each [Regular Hours] + [Regular Hours 42 Correction]),
+        add_150_extra_hours = Table.AddColumn(add_final_regular_hours,"Extra Hours 150",
+                                                each List.Max({[Total Hours]-[Final Regular Hours]-Hours(2),Hours(0)})),
+        add_125_extra_hours = Table.AddColumn(add_150_extra_hours,"Extra Hours 125",each [Total Hours]-[Final Regular Hours]-[Extra Hours 150]),
+
+        join_tables =  Table.NestedJoin(main_table,"Index",add_125_extra_hours,"Index","Extra"),
+        expand_final_table = Table.ExpandTableColumn(join_tables,"Extra",{ "Final Regular Hours", "Extra Hours 125", "Extra Hours 150"}),
+        columns_list = {"Worker Name","Date", "Entry Time","Exit Time","Total Hours",
+                            "Final Regular Hours","Extra Hours 125", "Extra Hours 150","Shabat Hours"},
+        select_columns = Table.SelectColumns(expand_final_table,columns_list),
+        rename_table_columns = Table.RenameColumns(select_columns,{
+            {"Worker Name", "שם העובד"},
+            {"Date", "תאריך"},
+            {"Entry Time","שעת כניסה"},
+            {"Exit Time","שעת יציאה"},
+            {"Total Hours","סה""כ שעות"},
+            {"Final Regular Hours", "שעות רגילות"},
+            {"Extra Hours 125", "שעות נוספות 125%"},
+            {"Extra Hours 150","שעות נוספות 150%"},
+            {"Shabat Hours","שעות שבת וחג"}
+        })
+    in 
+        rename_table_columns
+in GenerateSalaryTable
+    
