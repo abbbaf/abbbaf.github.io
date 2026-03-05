@@ -1,25 +1,26 @@
-let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table) =>
+let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table,month as number) =>
 
     let
 
-        Hours = (number_of_hours) => #duration(0,number_of_hours,0,0),
         
-        TimeDifference = (time1, time2) => if time1 >= time2 then time1-time2 else time1 - time2 + Hours(24),
+        TimeDifference = (time1, time2) => 24*Number.Mod(Number.From(time1-time2),24),
 
-        max_regular_hours = #duration(0,8,0,0), 
+        max_regular_hours = 8,
 
-        transform_types = Table.TransformColumnTypes(hours_table,{
+        select_month = Table.SelectRows(hours_table,each Date.Month([Date]) = month),
+
+        transform_types = Table.TransformColumnTypes(select_month,{
             {"Entry Time", type time },
             { "Exit Time", type time }
         }),
 
         add_total_hours = Table.AddColumn(transform_types,"Total Hours",each TimeDifference([Exit Time],[Entry Time])),
         add_night_hours = Table.AddColumn(add_total_hours, "Night Hours", each 
-                                if [Exit Time] > Hours(22) or [Exit Time] < [Entry Time] 
-                                    then TimeDifference([Exit Time],List.Max({Hours(22),[Entry Time]}))
-                                else if [Entry Time] < Hours(6) 
-                                    then TimeDifference(List.Min({Hours(6),[Exit Time]}),[Entry Time])
-                                else Hours(0)),
+                                if [Exit Time] > #time(22,0,0) or [Exit Time] < [Entry Time] 
+                                    then TimeDifference([Exit Time],List.Max({#time(22,0,0),[Entry Time]}))
+                                else if [Entry Time] < #time(6,0,0)
+                                    then TimeDifference(List.Min({#time(6,0,0),[Exit Time]}),[Entry Time])
+                                else 0),
                                 
         add_shabat_table_column = Table.NestedJoin(add_night_hours,"Date",shabat_and_holiday_table,"Date","Shabat"),
         expand_shabat_column = Table.ExpandTableColumn(add_shabat_table_column,"Shabat",{"Shabat Entry Time", "Shabat Exit Time"}),
@@ -28,14 +29,14 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
             if [Shabat Entry Time] <> null then 
                 if [Exit Time] > [Shabat Entry Time] or [Entry Time] > [Exit Time]
                     then TimeDifference([Exit Time],List.Max({[Entry Time],[Shabat Entry Time]}))
-                else Hours(0)
+                else 0
             else if [Shabat Exit Time] <> null then
                 if [Entry Time] < [Shabat Exit Time] then
                     if [Entry Time] > [Exit Time]
                         then TimeDifference(List.Min({[Exit Time],[Shabat Exit Time]}),[Entry Time])
                     else TimeDifference([Shabat Exit Time],[Entry Time])
-                else Hours(0)
-            else Hours(0)
+                else 0
+            else 0
         ),
 
         add_index = Table.AddIndexColumn(add_shabat_hours, "Index"),
@@ -45,29 +46,29 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
         group_by_dates = Table.Group(main_table,{"Worker Name","Date"},{ 
             {"Total Hours", each List.Sum([Total Hours])},
             {"Index", each List.Max([Index])},
-            {"Has Night Hours", each List.Sum([Night Hours]) >= Hours(2)},
+            {"Has Night Hours", each List.Sum([Night Hours]) >= 2},
             {"Is Friday Or Holiday Evening", each List.First([Shabat Entry Time]) <> null}
         }),
 
-    add_week_of_month = Table.AddColumn(group_by_dates,"Week Of Month",each Date.WeekOfMonth([Date])),
+        add_week_of_month = Table.AddColumn(group_by_dates,"Week Of Month",each Date.WeekOfMonth([Date])),
         add_regular_hours = Table.AddColumn(add_week_of_month,"Regular Hours", each
             List.Min({
-                if [Has Night Hours] or [Is Friday Or Holiday Evening] then Hours(7) else max_regular_hours,
+                if [Has Night Hours] or [Is Friday Or Holiday Evening] then 7 else max_regular_hours,
                 [Total Hours]})
         ),
 
         group_by_weeks = Table.Group(add_regular_hours,{ "Week Of Month", "Worker Name" },{
-            { "Regular Hours 42 Correction", each List.Min({Hours(42)-List.Sum([Regular Hours]),Hours(0)}) },
+            { "Regular Hours 42 Correction", each List.Min({42-List.Sum([Regular Hours]),0}) },
             { "Index", each List.Max([Index]) }
         }),
 
-        join_weeks_and_dates = Table.NestedJoin(add_regular_hours,"Index",group_by_weeks,"Index",{"Regular Hours 42 Correction"}, "Extra"),
+        join_weeks_and_dates = Table.NestedJoin(add_regular_hours,"Index",group_by_weeks,"Index", "Extra"),
         expand_dates_table = Table.ExpandTableColumn(join_weeks_and_dates,"Extra",{"Regular Hours 42 Correction"}),
-
-        add_final_regular_hours = Table.AddColumn(expand_dates_table,"Final Regular Hours",
+        replace_nulls = Table.ReplaceValue(expand_dates_table, null, 0, Replacer.ReplaceValue, {"Regular Hours 42 Correction"}),
+        add_final_regular_hours = Table.AddColumn(replace_nulls,"Final Regular Hours",
                                                     each [Regular Hours] + [Regular Hours 42 Correction]),
         add_150_extra_hours = Table.AddColumn(add_final_regular_hours,"Extra Hours 150",
-                                                each List.Max({[Total Hours]-[Final Regular Hours]-Hours(2),Hours(0)})),
+                                                each List.Max({[Total Hours]-[Final Regular Hours]-2,0})),
         add_125_extra_hours = Table.AddColumn(add_150_extra_hours,"Extra Hours 125",each [Total Hours]-[Final Regular Hours]-[Extra Hours 150]),
 
         join_tables =  Table.NestedJoin(main_table,"Index",add_125_extra_hours,"Index","Extra"),
@@ -89,4 +90,5 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
     in 
         rename_table_columns
 in GenerateSalaryTable
+    
     
