@@ -3,19 +3,23 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
     let
 
         
-        TimeDifference = (time1, time2) => 24*Number.Mod(Number.From(time1-time2),24),
+        TimeDifference = (time1 as time, time2 as time) => 24*Number.Mod(Number.From(time1-time2),24),
 
         max_regular_hours = 8,
 
-        select_month = Table.SelectRows(hours_table,each Date.Month([Date]) = month),
+        add_break_column_if_needed = try Table.AddColumn(hours_table,"Break",each 0) otherwise hours_table,
+
+        select_month = Table.SelectRows(add_break_column_if_needed,each Date.Month([Date]) = month),
 
         transform_types = Table.TransformColumnTypes(select_month,{
             {"Entry Time", type time },
             { "Exit Time", type time }
         }),
 
-        add_total_hours = Table.AddColumn(transform_types,"Total Hours",each TimeDifference([Exit Time],[Entry Time])),
-        add_night_hours = Table.AddColumn(add_total_hours, "Night Hours", each 
+        add_total_hours = Table.AddColumn(transform_types,"Total Hours",each TimeDifference([Exit Time],[Entry Time]) - [Break]),
+        check_negative_total_hours = if List.Min(add_total_hours[Total Hours]) < 0 then 
+                                            error "Error: Some total hours are negative" else add_total_hours,
+        add_night_hours = Table.AddColumn(check_negative_total_hours, "Night Hours", each 
                                 if [Exit Time] > #time(22,0,0) or [Exit Time] < [Entry Time] 
                                     then TimeDifference([Exit Time],List.Max({#time(22,0,0),[Entry Time]}))
                                 else if [Entry Time] < #time(6,0,0)
