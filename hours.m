@@ -68,9 +68,8 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
 
         join_weeks_and_dates = Table.NestedJoin(add_regular_hours,"Index",group_by_weeks,"Index", "Extra"),
         expand_dates_table = Table.ExpandTableColumn(join_weeks_and_dates,"Extra",{"Regular Hours 42 Correction"}),
-        replace_nulls = Table.ReplaceValue(expand_dates_table, null, 0, Replacer.ReplaceValue, {"Regular Hours 42 Correction"}),
-        add_final_regular_hours = Table.AddColumn(replace_nulls,"Final Regular Hours",
-                                                    each [Regular Hours] + [Regular Hours 42 Correction]),
+        add_final_regular_hours = Table.AddColumn(expand_dates_table,"Final Regular Hours",
+                                                    each [Regular Hours] + ([Regular Hours 42 Correction] ?? 0)),
         add_150_extra_hours = Table.AddColumn(add_final_regular_hours,"Extra Hours 150",
                                                 each List.Max({[Total Hours]-[Final Regular Hours]-2,0})),
         add_125_extra_hours = Table.AddColumn(add_150_extra_hours,"Extra Hours 125",each [Total Hours]-[Final Regular Hours]-[Extra Hours 150]),
@@ -94,5 +93,4 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
     in 
         rename_table_columns
 in GenerateSalaryTable
-    
     
