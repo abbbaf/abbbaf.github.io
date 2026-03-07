@@ -33,7 +33,7 @@ let
         #"#duration" = #duration,
         #"#time" = #time
     ],
-    LoadFunctions = () => [
+    Functions = [
         GenerateSalaryTable = Expression.Evaluate(
             Text.FromBinary(Web.Contents("https://abbbaf.github.io/hours.m")),
             SalaryEnvironment
@@ -43,7 +43,6 @@ let
             SalaryEnvironment
         )
     ],
-    Functions = LoadFunctions()
 in
     Functions
 
