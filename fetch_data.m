@@ -41,14 +41,14 @@ let
             Text.FromBinary(Web.Contents("https://abbbaf.github.io/data_summary.m")),
             SalaryEnvironment
         )
-    ]
+    ],
+    Functions = LoadFunctions()
 in
-    LoadFunctions
+    Functions
 
 
 // Put this code in the workbook
 let
-    Functions = LoadFunctions(),
     hours = Functions[GenerateSalaryTable](hours_table, shabat_and_holiday_table, month),
     result = Functions[WorkerDataSummary](hours, worker_number_data, extra_data)
 in
