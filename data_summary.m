@@ -1,5 +1,10 @@
-let WorkerDataSummary = (calculate_hours_data as table, worker_number_data as table, extra_data as table) =>
+let WorkerDataSummary = (calculate_hours_data as table, worker_number_data as table, extra_data as table, 
+                                optional commuting_allowance as list) =>
     let
+        commuting_allowance_per_day = if commuting_allowance = null then 13.54 else commuting_allowance{0},
+        commuting_allowance_per_month = if commuting_allowance = null then 117.79 else commuting_allowance{1},
+        days_limit = Number.RoundUp(commuting_allowance_per_month/commuting_allowance_per_day),
+
         summary_table = Table.Group(calculate_hours_data,"שם העובד",{
            { "ימי עבודה", each List.Count(List.Select([שעות רגילות],each _ <> null)) },
            { "סה""כ שעות", each List.Sum([סה""כ שעות]) },
@@ -13,8 +18,18 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_number_data as ta
         reorder_columns = Table.ReorderColumns(expand_worker_number_data,{"מספר עובד"} & Table.ColumnNames(summary_table)),
         add_extra_table = Table.NestedJoin(reorder_columns,"מספר עובד",extra_data,"מספר עובד","Extra Data"),
         new_column_names = List.Difference(Table.ColumnNames(extra_data),Table.ColumnNames(add_extra_table)),
-        expand_extra_data = Table.ExpandTableColumn(add_extra_table,"Extra Data",new_column_names)
+        expand_extra_data = Table.ExpandTableColumn(add_extra_table,"Extra Data",new_column_names),
+        add_commuting_allowance = Table.AddColumn(expand_extra_data,"נסיעות-תעריף",each 
+                                                                    if [להוריד נסיעות?] = "כן" then
+                                                                        if [ימי עבודה] >= days_limit then commuting_allowance_per_month 
+                                                                        else commuting_allowance_per_day
+                                                                    else null),
+        add_commuting_allowance_days = Table.AddColumn(add_commuting_allowance,"נסיעות-ימים",each 
+                                                                    if [להוריד נסיעות?] = "כן" then
+                                                                        if [ימי עבודה] >= days_limit then 1 else [ימי עבודה]
+                                                                    else null),
+        add_meals = Table.AddColumn(add_commuting_allowance_days,"שווי ארוחות - ימים",each if [להוריד שווי ארוחות?]? = "כן" then [ימי עבודה] else null)
     in
-        expand_extra_data
+        add_meals
 in 
     WorkerDataSummary
