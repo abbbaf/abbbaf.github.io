@@ -28,6 +28,7 @@ let
         Number.Mod = Number.Mod,
         Number.From = Number.From,
         Number.RoundUp = Number.RoundUp,
+        List.Difference = List.Difference,
         Replacer.ReplaceValue = Replacer.ReplaceValue,
         #"#duration" = #duration,
         #"#time" = #time
