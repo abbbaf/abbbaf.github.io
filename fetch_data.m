@@ -30,6 +30,10 @@ let
         Number.RoundUp = Number.RoundUp,
         List.Difference = List.Difference,
         Replacer.ReplaceValue = Replacer.ReplaceValue,
+        Table.TransformColumns = Table.TransformColumns,
+        Table.RemoveColumns = Table.RemoveColumns,
+        List.Accumulate = List.Accumulate,
+        Record.Field = Record.Field
         #"#duration" = #duration,
         #"#time" = #time
     ],
