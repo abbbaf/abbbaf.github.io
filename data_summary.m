@@ -4,9 +4,9 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
             let
                 daily_allowance = worker_record[Worker Settings][נסיעות יומי],
                 monthly_allowance = worker_record[Worker Settings][נסיעות חודשי],
-                daily_limit = try Number.RoundUp(monthly_allowance/daily_allowance) otherwise null,
-                result = if daily_limit <> null then 
-                            if daily_limit >= worker_record[ימי עבודה] then {monthly_allowance,1}
+                days_limit = try Number.RoundUp(monthly_allowance/daily_allowance) otherwise null,
+                result = if days_limit <> null then 
+                            if days_limit >= worker_record[ימי עבודה] then {monthly_allowance,1}
                             else {daily_allowance,worker_record[ימי עבודה]}
                          else { null, null }
             in
@@ -33,20 +33,7 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
         add_commuting_allowance_days = Table.AddColumn(add_commuting_allowance_fee,"נסיעות-ימים",each [נסיעות]{1}),
         add_meals = Table.AddColumn(add_commuting_allowance_days,"שווי ארוחות-ימים",each 
                                                 if [Worker Settings][שווי ארוחות] = "כן" then [ימי עבודה] else null),
-
-        fix_hours = List.Accumulate(
-                        {"שעות רגילות", "שעות נוספות 125%", "שעות נוספות 150%", "שעות שבת וחג"},
-                        add_meals,
-                        (table, col) => Table.ReplaceValue(
-                            table,
-                            each Record.Field(_, col),
-                            each if Record.Field([Worker Settings], col) = "כן" then Record.Field(_, col) else null,
-                            Replacer.ReplaceValue,
-                            {col}
-                        )
-                    ),
-        remove_settings_column = Table.RemoveColumns(fix_hours,{ "Worker Settings", "נסיעות" })
     in
-        remove_settings_column
+        add_meals
 in 
     WorkerDataSummary
