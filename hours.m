@@ -1,4 +1,4 @@
-let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table,month as number) =>
+let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table,worker_settings as table, month as number) =>
 
     let
 
@@ -20,13 +20,16 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
 
         transform_types = Table.TransformColumnTypes(select_month,{
             {"Entry Time", type time },
-            { "Exit Time", type time }
+            { "Exit Time", type time },
+            { "Date", type date } 
         }),
 
-        add_total_hours = Table.AddColumn(transform_types,"Total Hours",each TimeDifference([Exit Time],[Entry Time]) - [Break]),
-        check_negative_total_hours = if List.Min(add_total_hours[Total Hours]) < 0 then 
-                                            error "Error: Some total hours are negative" else add_total_hours,
-        add_night_hours = Table.AddColumn(check_negative_total_hours, "Night Hours", each 
+        add_worker_settings = Table.NestedJoin(transform_types,"Worker Name",worker_settings,"שם העובד","Worker Settings"),
+        worker_settings_to_record = Table.TransformColumns(add_worker_settings,{{"Worker Settings", each _{0}}}),
+        add_total_hours = Table.AddColumn(worker_settings_to_record,"Total Hours", 
+                                                each TimeDifference([Exit Time],[Entry Time]) - ([Worker Settings][הפסקה] ?? 0)),
+
+        add_night_hours = Table.AddColumn(add_total_hours, "Night Hours", each 
                                 if [Exit Time] > #time(22,0,0) or [Exit Time] < [Entry Time] 
                                     then TimeDifference([Exit Time],List.Max({#time(22,0,0),[Entry Time]}))
                                 else if [Entry Time] < #time(6,0,0)
@@ -35,17 +38,19 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
                                 
         join_with_shabat_table = JoinTables(add_night_hours,"Date",shabat_and_holiday_table,"Date",{"Shabat Entry Time", "Shabat Exit Time"}),
         add_shabat_hours = Table.AddColumn(join_with_shabat_table,"Shabat Hours",each
-            if [Shabat Entry Time] <> null then 
-                if [Exit Time] > [Shabat Entry Time] or [Entry Time] > [Exit Time]
-                    then TimeDifference([Exit Time],List.Max({[Entry Time],[Shabat Entry Time]}))
+            if [Worker Settings][שעות שבת וחג] = "לא" then null 
+            else
+                if [Shabat Entry Time] <> null then 
+                    if [Exit Time] > [Shabat Entry Time] or [Entry Time] > [Exit Time]
+                        then TimeDifference([Exit Time],List.Max({[Entry Time],[Shabat Entry Time]}))
+                    else 0
+                else if [Shabat Exit Time] <> null then
+                    if [Entry Time] < [Shabat Exit Time] then
+                        if [Entry Time] > [Exit Time]
+                            then TimeDifference(List.Min({[Exit Time],[Shabat Exit Time]}),[Entry Time])
+                        else TimeDifference([Shabat Exit Time],[Entry Time])
+                    else 0
                 else 0
-            else if [Shabat Exit Time] <> null then
-                if [Entry Time] < [Shabat Exit Time] then
-                    if [Entry Time] > [Exit Time]
-                        then TimeDifference(List.Min({[Exit Time],[Shabat Exit Time]}),[Entry Time])
-                    else TimeDifference([Shabat Exit Time],[Entry Time])
-                else 0
-            else 0
         ),
 
         add_index = Table.AddIndexColumn(add_shabat_hours, "Index"),
@@ -53,6 +58,7 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
         main_table = add_index,
 
         group_by_dates = Table.Group(main_table,{"Worker Name","Date"},{ 
+            {"Worker Settings", each List.First([Worker Settings])},
             {"Total Hours", each List.Sum([Total Hours])},
             {"Index", each List.Max([Index])},
             {"Has Night Hours", each List.Sum([Night Hours]) >= 2},
@@ -61,26 +67,48 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
 
         add_week_of_month = Table.AddColumn(group_by_dates,"Week Of Month",each Date.WeekOfMonth([Date])),
         add_regular_hours = Table.AddColumn(add_week_of_month,"Regular Hours", each
-            List.Min({
-                if [Has Night Hours] or [Is Friday Or Holiday Evening] then 7 else max_regular_hours,
-                [Total Hours]})
+            if [Worker Settings][שעות רגילות] = "לא" then 1
+            else if [Worker Settings][שעות נוספות 125%] = "לא" then [Total Hours]
+            else
+                List.Min({
+                    if [Has Night Hours] or [Is Friday Or Holiday Evening] then 7 else max_regular_hours,
+                    [Total Hours]})
         ),
 
+   
         group_by_weeks = Table.Group(add_regular_hours,{ "Week Of Month", "Worker Name" },{
-            { "Regular Hours 42 Correction", each List.Min({42-List.Sum([Regular Hours]),0}) },
-            { "Index", each List.Max([Index]) }
-        }),
+                                            { "Regular Hours 42 Correction", each List.Min({42-List.Sum([Regular Hours]),0}) },
+                                            { "Index", each List.Max([Index]) }
+                                        }),
+        join_weeks_and_dates = JoinTables(add_regular_hours,"Index",group_by_weeks,"Index", 
+                                                                                {"Regular Hours 42 Correction"}),
 
-        join_weeks_and_dates = JoinTables(add_regular_hours,"Index",group_by_weeks,"Index", {"Regular Hours 42 Correction"}),
-        add_final_regular_hours = Table.AddColumn(join_weeks_and_dates,"Final Regular Hours",
-                                                    each [Regular Hours] + ([Regular Hours 42 Correction] ?? 0)),
+                      
+
+        add_final_regular_hours = Table.AddColumn(join_weeks_and_dates,"Final Regular Hours", 
+                    each
+                        if [Worker Settings][שעות רגילות] = "לא" or [Worker Settings][שעות נוספות 125%] = "לא" then 
+                            [Regular Hours]
+                        else
+                            [Regular Hours] + ([Regular Hours 42 Correction] ?? 0)),
+
+
         add_150_extra_hours = Table.AddColumn(add_final_regular_hours,"Extra Hours 150",
-                                                each List.Max({[Total Hours]-[Final Regular Hours]-2,0})),
-        add_125_extra_hours = Table.AddColumn(add_150_extra_hours,"Extra Hours 125",each [Total Hours]-[Final Regular Hours]-[Extra Hours 150]),
+                                                each
+                                                    if [Worker Settings][שעות נוספות 150%]  = "לא" then 0
+                                                    else List.Max({[Total Hours]-[Final Regular Hours]-2,0})
+                                                ),
+        add_125_extra_hours = Table.AddColumn(add_150_extra_hours,"Extra Hours 125",
+                                                each 
+                                                    if [Worker Settings][שעות נוספות 125%]  = "לא" then 0
+                                                    else [Total Hours]-[Final Regular Hours]-[Extra Hours 150]
+                                                ),
         join_tables =  JoinTables(main_table,"Index",add_125_extra_hours,"Index",{ "Final Regular Hours", "Extra Hours 125", "Extra Hours 150"}),
-        select_columns = Table.SelectColumns(join_tables, {"Worker Name","Date", "Entry Time","Exit Time","Total Hours",
+        add_worker_number = Table.AddColumn(join_tables,"Worker Number",each [Worker Settings][מספר עובד]),
+        select_columns = Table.SelectColumns(add_worker_number, {"Worker Number", "Worker Name","Date", "Entry Time","Exit Time","Total Hours",
                             "Final Regular Hours","Extra Hours 125", "Extra Hours 150","Shabat Hours"}),
         rename_table_columns = Table.RenameColumns(select_columns,{
+            {"Worker Number", "מספר עובד"},
             {"Worker Name", "שם העובד"},
             {"Date", "תאריך"},
             {"Entry Time","שעת כניסה"},
@@ -94,4 +122,3 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
     in 
         rename_table_columns
 in GenerateSalaryTable
-    
