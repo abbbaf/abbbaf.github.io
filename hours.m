@@ -13,10 +13,8 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
         TimeDifference = (time1 as time, time2 as time) => 24*Number.Mod(Number.From(time1-time2),24),
 
         max_regular_hours = 8,
-
-        add_break_column_if_needed = try Table.AddColumn(hours_table,"Break",each 0) otherwise hours_table,
-
-        select_month = Table.SelectRows(add_break_column_if_needed,each Date.Month([Date]) = month),
+ 
+        select_month = Table.SelectRows(hours_table,each Date.Month([Date]) = month),
 
         transform_types = Table.TransformColumnTypes(select_month,{
             {"Entry Time", type time },
@@ -26,8 +24,16 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
 
         add_worker_settings = Table.NestedJoin(transform_types,"Worker Name",worker_settings,"שם העובד","Worker Settings"),
         worker_settings_to_record = Table.TransformColumns(add_worker_settings,{{"Worker Settings", each _{0}}}),
-        add_total_hours = Table.AddColumn(worker_settings_to_record,"Total Hours", 
-                                                each TimeDifference([Exit Time],[Entry Time]) - ([Worker Settings][הפסקה] ?? 0)),
+        add_break_column = Table.AddColumn(worker_settings_to_record,"Break",each [Worker Settings][הפסקה] ?? 0),
+        add_total_hours = Table.AddColumn(add_break_column,"Total Hours", each 
+                                                                let
+                                                                    total_hours = TimeDifference([Exit Time],[Entry Time]),
+                                                                    total_hours_after_break = total_hours-
+                                                                        ((if total_hours >= 6 then [Break] else 0))
+                                                                in
+                                                                    total_hours_after_break
+                                                        ),
+                                       
 
         add_night_hours = Table.AddColumn(add_total_hours, "Night Hours", each 
                                 if [Exit Time] > #time(22,0,0) or [Exit Time] < [Entry Time] 
@@ -103,22 +109,37 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
                                                     if [Worker Settings][שעות נוספות 125%]  = "לא" then 0
                                                     else [Total Hours]-[Final Regular Hours]-[Extra Hours 150]
                                                 ),
-        join_tables =  JoinTables(main_table,"Index",add_125_extra_hours,"Index",{ "Final Regular Hours", "Extra Hours 125", "Extra Hours 150"}),
+        add_meals = Table.AddColumn(add_125_extra_hours,"meals",each if ([Worker Settings][שווי ארוחות] ) = "כן" then 1 else 0),
+
+        add_commuting_allowance_column = Table.AddColumn(add_meals,"commuting allowance",each [Worker Settings][נסיעות יומי]),
+
+        join_tables =  JoinTables(main_table,"Index",add_commuting_allowance_column,"Index",
+                                                        { "Break", "Final Regular Hours", "Extra Hours 125", "Extra Hours 150",
+                                                            "Shabat Hours", "commuting allowance", "meals"                                                                    
+                                                                    }),
         add_worker_number = Table.AddColumn(join_tables,"Worker Number",each [Worker Settings][מספר עובד]),
-        select_columns = Table.SelectColumns(add_worker_number, {"Worker Number", "Worker Name","Date", "Entry Time","Exit Time","Total Hours",
-                            "Final Regular Hours","Extra Hours 125", "Extra Hours 150","Shabat Hours"}),
+        select_columns = Table.ReorderColumns(add_worker_number, 
+                                                {"Worker Number", "Worker Name","Date", "Entry Time","Exit Time","Break",
+                                                    "Total Hours", "Final Regular Hours","Extra Hours 125", "Extra Hours 150","Shabat Hours",
+                                                    "commuting allowance", "meals"
+                                                }),
         rename_table_columns = Table.RenameColumns(select_columns,{
             {"Worker Number", "מספר עובד"},
             {"Worker Name", "שם העובד"},
             {"Date", "תאריך"},
             {"Entry Time","שעת כניסה"},
             {"Exit Time","שעת יציאה"},
+            { "Break", "הפסקה" },
             {"Total Hours","סה""כ שעות"},
             {"Final Regular Hours", "שעות רגילות"},
             {"Extra Hours 125", "שעות נוספות 125%"},
             {"Extra Hours 150","שעות נוספות 150%"},
-            {"Shabat Hours","שעות שבת וחג"}
+            {"Shabat Hours","שעות שבת וחג"},
+            { "commuting allowance", "נסיעות יומי" },
+            { "meals", "שווי ארוחות" }
         })
+        
     in 
         rename_table_columns
 in GenerateSalaryTable
+    
