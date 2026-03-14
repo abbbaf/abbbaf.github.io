@@ -1,57 +1,40 @@
-let
-    SalaryEnvironment = [
-        Table.AddColumn = Table.AddColumn,
-        Table.Group = Table.Group,
-        Table.NestedJoin = Table.NestedJoin,
-        Table.ExpandTableColumn = Table.ExpandTableColumn,
-        Table.SelectColumns = Table.SelectColumns,
-        Table.RenameColumns = Table.RenameColumns,
-        Table.SelectRows = Table.SelectRows,
-        Table.TransformColumnTypes = Table.TransformColumnTypes,
-        Table.AddIndexColumn = Table.AddIndexColumn,
-        Table.ReplaceValue = Table.ReplaceValue,
-        Table.ReorderColumns = Table.ReorderColumns,
-        Table.FirstN = Table.FirstN,
-        Table.Skip = Table.Skip,
-        Table.Combine = Table.Combine,
-        Table.ReplaceRows = Table.ReplaceRows,
-        List.Sum = List.Sum,
-        List.Min = List.Min,
-        List.Max = List.Max,
-        List.Count = List.Count,
-        List.Select = List.Select,
-        List.First = List.First,
-        List.AnyTrue = List.AnyTrue,
-        List.Transform = List.Transform,
-        Date.Month = Date.Month,
-        Date.WeekOfMonth = Date.WeekOfMonth,
-        Number.Mod = Number.Mod,
-        Number.From = Number.From,
-        Number.RoundUp = Number.RoundUp,
-        List.Difference = List.Difference,
-        Replacer.ReplaceValue = Replacer.ReplaceValue,
-        Table.TransformColumns = Table.TransformColumns,
-        Table.RemoveColumns = Table.RemoveColumns,
-        List.Accumulate = List.Accumulate,
-        Record.Field = Record.Field
-        #"#duration" = #duration,
-        #"#time" = #time
-    ],
-    Functions = [
-        GenerateSalaryTable = Expression.Evaluate(
-            Text.FromBinary(Web.Contents("https://abbbaf.github.io/hours.m")),
-            SalaryEnvironment
-        ),
-        WorkerDataSummary = Expression.Evaluate(
-            Text.FromBinary(Web.Contents("https://abbbaf.github.io/data_summary.m")),
-            SalaryEnvironment
-        )
-    ],
+let 
+    GetDataFromHebcal = (path) => Json.Document(Web.Contents("https://www.hebcal.com/" & path)),
+
+    safe_environment = Record.SelectFields(#shared, List.Select(Record.FieldNames(#shared), each
+        Text.StartsWith(_,"Table.") or
+        Text.StartsWith(_,"Date.") or
+        Text.StartsWith(_,"Time.") or
+        Text.StartsWith(_,"DateTime.") or
+        Text.StartsWith(_,"Duration.") or
+        Text.StartsWith(_,"Error.") or
+        Text.StartsWith(_,"List.") or
+        Text.StartsWith(_,"Number.") or
+        Text.StartsWith(_,"#date") or
+        Text.StartsWith(_,"#time") or
+        Text.StartsWith(_,"#duration") or
+        Text.StartsWith(_,"Replacer.") or
+        Text.StartsWith(_,"Text.") or
+        Text.StartsWith(_,"Record.") 
+    )) & [GetDataFromHebcal=GetDataFromHebcal],
+    
+
+    GetFunction = (url, optional allow_function_loading) =>
+        let
+            function_loading = if allow_function_loading = true then [GetFunction=GetFunction] else [],
+            expression = Text.FromBinary(Web.Contents(url)),   
+            result = Expression.Evaluate(expression,safe_environment & function_loading)
+        in
+            result,
+
+    GetFunctions = GetFunction("https://abbbaf.github.io/functions.m",true)
+
 in
-    Functions
+    GetFunctions
 
 
 // Put this code in the workbook
+/*
 let
     hours = Functions[GenerateSalaryTable](hours_table, shabat_and_holiday_table, month),
     result = Functions[WorkerDataSummary](hours, worker_number_data, extra_data)
