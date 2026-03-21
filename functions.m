@@ -12,14 +12,12 @@ let GetFunctions = (base_url,environment) =>
 
         GetFunction = (url) => Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & url)),safe_environment),
 
-        functions = [
-            GenerateSalaryTable = GetFunction("/hours.m"),
-            WorkerDataSummary = GetFunction("/data_summary.m"),
-            GetShabatAndHolidayTable = GetFunction("/shabat_hours.m"),
-            GetSalaryLoadingFile = GetFunction("/generate_loading_file.m"),
-            GetWorkDates = GetFunction("/workdates.m"),
-            GetDaysOff = GetFunction("/daysoff.m")
-        ]
+        functions_path_record =  Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & "/functions_path.m"))),
+
+        functions = Record.TransformFields(functions_path_record,List.Zip({
+                                                    Record.FieldNames(functions_path_record),
+                                                    List.Transform(Record.FieldValues(functions_path_record),each () => GetFunction(_))
+                                            }))
     in
         functions
 in
