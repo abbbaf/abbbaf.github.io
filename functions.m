@@ -16,7 +16,7 @@ let GetFunctions = (base_url,environment) =>
 
         functions = Record.TransformFields(functions_path_record,List.Zip({
                                                     Record.FieldNames(functions_path_record),
-                                                    List.Transform(Record.FieldValues(functions_path_record),each () => GetFunction(_))
+                                                    List.Transform(Record.FieldValues(functions_path_record),(url) => () => GetFunction(url))
                                             }))
     in
         functions
