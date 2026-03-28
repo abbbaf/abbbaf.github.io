@@ -4,7 +4,7 @@ let GetFunctions = (base_url,environment) =>
         allowedPrefixes = {
             "Table.","Date.","Time.","DateTime.","Duration.","Error.",
             "List.","Number.","#date","#time","#duration",
-            "Replacer.","Text.","Record."
+            "Replacer.","Text.","Record.", "Splitter."
         },
         safe_environment = Record.SelectFields(environment, List.Select(Record.FieldNames(environment), (name) =>
             List.AnyTrue(List.Transform(allowedPrefixes,(prefix) => Text.StartsWith(name,prefix) ))
