@@ -10,15 +10,16 @@ let GetFunctions = (base_url,environment) =>
             List.AnyTrue(List.Transform(allowedPrefixes,(prefix) => Text.StartsWith(name,prefix) ))
         )) & [GetDataFromHebcal=GetDataFromHebcal],
 
-        GetFunction = (url) => Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & url)),safe_environment),
+        GetFunction = (url) => Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & url,[IsRetry=true])),safe_environment),
 
-        functions_path_record =  Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & "/functions_path.m"))),
+        functions_path_record =  Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & "/functions_path.m",[IsRetry=true]))),
 
         functions = Record.TransformFields(functions_path_record,List.Zip({
                                                     Record.FieldNames(functions_path_record),
                                                     List.Transform(Record.FieldValues(functions_path_record),(url) => () => GetFunction(url))
                                             }))
+
     in
-        functions
+         functions
 in
     GetFunctions
