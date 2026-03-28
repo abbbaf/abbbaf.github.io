@@ -14,11 +14,9 @@ let GetFunctions = (base_url,environment) =>
 
         functions_path_record =  Expression.Evaluate(Text.FromBinary(Web.Contents(base_url & "/functions_path.m",[IsRetry=true]))),
 
-        functions = Record.TransformFields(functions_path_record,List.Zip({
-                                                    Record.FieldNames(functions_path_record),
-                                                    List.Transform(Record.FieldValues(functions_path_record),(url) => () => GetFunction(url))
-                                            }))
-
+        functions = Record.FromList(
+            List.Transform(Record.FieldValues(functions_path_record), (url) => () => GetFunction(url)),
+            Record.FieldNames(functions_path_record))
     in
          functions
 in
