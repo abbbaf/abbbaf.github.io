@@ -4,7 +4,8 @@ let functions_path = [
             GetShabatAndHolidayTableFunc = "/shabat_hours.m",
             GetSalaryLoadingFileFunc = "/generate_loading_file.m",
             GetWorkDatesFunc = "/workdates.m",
-            GetDaysOffFunc = "/daysoff.m"
+            GetDaysOffFunc = "/daysoff.m",
+            GetCalendarFunc = "/calendar.m"
         ]
 in
     functions_path

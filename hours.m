@@ -1,4 +1,7 @@
-let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table) =>
+let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as table, is5days as logical) =>
+    /*
+        hourse_table columbns: Worken Name, Date, Entry Time, Exit Time, Break 
+    */
 
     let
         month = Date.Month(shabat_and_holiday_table{0}[Date]),
@@ -10,9 +13,9 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
                             expand_column,
 
         
-        TimeDifference = (time1 as time, time2 as time) => 24*Number.Mod(Number.From(time1-time2),24),
+        TimeDifference = (time1 as time, time2 as time) => Number.Mod(24*Number.From(time1-time2)+24,24),
 
-        max_regular_hours = 8,
+        max_regular_hours = if is5days then 8.4 else 8,
  
         select_month = Table.SelectRows(hours_table,each Date.Month([Date]) = month),
 
@@ -22,7 +25,11 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
             { "Date", type date } 
         }),
 
-        add_total_hours = Table.AddColumn(transform_types,"Total Hours", each 
+        add_break_column = if Table.HasColumns(transform_types,"Break") 
+                            then transform_types
+                            else Table.AddColumn(transform_types,"Break",each 0),
+
+        add_total_hours = Table.AddColumn(add_break_column,"Total Hours", each 
                                                                 let
                                                                     total_hours = TimeDifference([Exit Time],[Entry Time]),
                                                                     total_hours_after_break = total_hours-
@@ -43,13 +50,17 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
         add_shabat_hours = Table.AddColumn(join_with_shabat_table,"Shabat Hours",each
                 if [Shabat Entry Time] <> null then 
                     if [Exit Time] > [Shabat Entry Time] or [Entry Time] > [Exit Time]
-                        then TimeDifference([Exit Time],List.Max({[Entry Time],[Shabat Entry Time]}))
+                        then List.Min({
+                                TimeDifference([Exit Time],List.Max({[Entry Time],[Shabat Entry Time]})),
+                                [Total Hours]})
                     else 0
                 else if [Shabat Exit Time] <> null then
                     if [Entry Time] < [Shabat Exit Time] then
                         if [Entry Time] > [Exit Time]
                             then TimeDifference([Shabat Exit Time],[Entry Time])
-                        else TimeDifference(List.Min({[Shabat Exit Time],[Exit Time]}),[Entry Time])
+                        else List.Min({
+                                TimeDifference(List.Min({[Shabat Exit Time],[Exit Time]}),[Entry Time]),
+                                [Total Hours]})
                     else 0 
                 else 0
         ),
@@ -92,8 +103,7 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
                                                 ),
 
         join_tables =  JoinTables(main_table,"Index",add_125_extra_hours,"Index",
-                                                        { "Regular Hours", "Extra Hours 125", "Extra Hours 150",
-                                                            "Shabat Hours"}),
+                                                        { "Regular Hours", "Extra Hours 125", "Extra Hours 150"}),
         select_columns = Table.SelectColumns(join_tables, 
                                                 {"Worker Name","Date", "Entry Time","Exit Time","Break",
                                                     "Total Hours", "Regular Hours","Extra Hours 125", "Extra Hours 150","Shabat Hours"

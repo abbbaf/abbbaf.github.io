@@ -14,10 +14,10 @@ let GetShabatAndHolidayTable = (year as number, month as number, optional geonam
         // --- Shabbat ---
         candles = Table.SelectRows(expand, each [category] = "candles"),
         havdalah = Table.SelectRows(expand, each [category] = "havdalah"),
-        candles_with_date = Table.AddColumn(candles, "Date", each Date.From(DateTime.FromText([date]))),
-        candles_with_time = Table.AddColumn(candles_with_date, "Shabat Entry Time", each Time.From(DateTime.FromText([date]))),
-        havdalah_with_date = Table.AddColumn(havdalah, "Date", each Date.From(DateTime.FromText([date]))),
-        havdalah_with_time = Table.AddColumn(havdalah_with_date, "Shabat Exit Time", each Time.From(DateTime.FromText([date]))),
+        candles_with_date = Table.AddColumn(candles, "Date", each Date.From(DateTimeZone.FromText([date]))),
+        candles_with_time = Table.AddColumn(candles_with_date, "Shabat Entry Time", each Time.From(DateTimeZone.FromText([date]))),
+        havdalah_with_date = Table.AddColumn(havdalah, "Date", each Date.From(DateTimeZone.FromText([date]))),
+        havdalah_with_time = Table.AddColumn(havdalah_with_date, "Shabat Exit Time", each Time.From(DateTimeZone.FromText([date]))),
         select_candles = Table.SelectColumns(candles_with_time, {"Date", "Shabat Entry Time"}),
         select_havdalah = Table.SelectColumns(havdalah_with_time, {"Date", "Shabat Exit Time"}),
         shabbat_table = select_candles & select_havdalah, 
@@ -31,9 +31,9 @@ let GetShabatAndHolidayTable = (year as number, month as number, optional geonam
 
         // Apply law shifts
         day_of_week = Date.DayOfWeek(raw_date),
-        yom_haatzmaut_date = if day_of_week = 6 then Date.AddDays(raw_date, -2)  // Saturday → Thursday
-                            else if day_of_week = 5 then Date.AddDays(raw_date, -1) // Friday → Thursday  
-                            else if day_of_week = 1 then Date.AddDays(raw_date, 1)  // Monday → Tuesday
+        yom_haatzmaut_date = if day_of_week = Day.Saturday then Date.AddDays(raw_date, -2)  // Saturday → Thursday
+                            else if day_of_week = Day.Friday then Date.AddDays(raw_date, -1) // Friday → Thursday  
+                            else if day_of_week = Day.Monday then Date.AddDays(raw_date, 1)  // Monday → Tuesday
                             else raw_date,
         yom_haatzmaut_table = #table(
             {"Date", "Shabat Entry Time", "Shabat Exit Time"},

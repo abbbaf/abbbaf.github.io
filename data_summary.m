@@ -6,10 +6,10 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
     let
         summary_table = Table.Group(calculate_hours_data,"שם העובד",{
            { "ימי עבודה", each List.Count(List.Select([שעות רגילות],each _ <> null)) },
-           { "סה""כ שעות", each List.Sum([סה""כ שעות]) },
+           { "סה""כ שעות", each List.Sum([#"סה""כ שעות"]) },
            { "שעות רגילות", each List.Sum([שעות רגילות]) },
-           { "שעות נוספות 125%", each List.Sum([שעות נוספות 125%])},
-           { "שעות נוספות 150%", each List.Sum([שעות נוספות 150%])},
+           { "שעות נוספות 125%", each List.Sum([#"שעות נוספות 125%"])},
+           { "שעות נוספות 150%", each List.Sum([#"שעות נוספות 150%"])},
            { "שעות שבת וחג", each List.Sum([שעות שבת וחג])}
         }),
         worker_settings_columns = List.RemoveItems(Table.ColumnNames(worker_settings),{"שם העובד"}),
@@ -20,10 +20,14 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
         filter_columns = Table.FromRecords(
                                 Table.TransformRows(count_new_workers, (r) =>
                                     Record.TransformFields(r,{
-                                            { "שעות רגילות", each if r[שעות רגילות?] = "לא" then null else _ },
-                                            { "שעות נוספות 125%", each if r[שעות נוספות?] = "לא" then null else _ },
-                                            { "שעות נוספות 150%", each if r[שעות נוספות?] = "לא" then null else _ },
-                                            { "שעות שבת וחג", each if r[שעות שבת וחג?] = "לא" then null else _ }
+                                            { "שעות רגילות", each 
+                                                            if r[#"שעות רגילות?"] = "לא" then null 
+                                                            else if r[#"שעות נוספות?"] = "לא" then r[#"סה""כ שעות"]
+                                                            else _ 
+                                                        },
+                                            { "שעות נוספות 125%", each if r[#"שעות נוספות?"] = "לא" then null else _ },
+                                            { "שעות נוספות 150%", each if r[#"שעות נוספות?"] = "לא" then null else _ },
+                                            { "שעות שבת וחג", each if r[#"שעות שבת וחג?"] = "לא" then null else _ }
                                         }   
                                     )
                                 )
@@ -38,7 +42,7 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
                                                             each if [נסיעות] = null then null 
                                                                 else if [נסיעות] >= [נסיעות חודשי] then 1 else [ימי עבודה]),
         add_unpaid_daysoff = Table.AddColumn(add_commuting_allowance_quantity,"ימי היעדרות",each 
-                                                                                if [שעות רגילות?] = "לא" then total_workdays - [ימי עבודה]
+                                                                                if [#"שעות רגילות?"] = "לא" then total_workdays - [ימי עבודה]
                                                                                 else null),
         column_names = {"מספר עובד"} & List.RemoveItems(Table.ColumnNames(add_unpaid_daysoff),worker_settings_columns & {"נסיעות","מספר עובד"}),
         select_columns = Table.SelectColumns(add_unpaid_daysoff,column_names)
@@ -46,4 +50,3 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
         select_columns
 in 
     WorkerDataSummary
-
