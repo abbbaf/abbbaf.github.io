@@ -5,7 +5,8 @@ let functions_path = [
             GetSalaryLoadingFileFunc = "/generate_loading_file.m",
             GetWorkDatesFunc = "/workdates.m",
             GetDaysOffFunc = "/daysoff.m",
-            GetCalendarFunc = "/calendar.m"
+            GetCalendarFunc = "/calendar.m",
+            GetMajorityYearAndMonth = "/majority_year_and_month.m"
         ]
 in
     functions_path
