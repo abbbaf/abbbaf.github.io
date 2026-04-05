@@ -1,5 +1,5 @@
 let 
-    sha256 = "8d32f08259438c03d604061b390477eb3b62ca9ad094fb510e6b7200327c541d",
+    sha256 = "1bc4d0086c3e55d01905c6f984c4c3df5e95deea3c2516d8b07a1444729986e9",
     url = "http://abbbaf.github.io/functions.m",
     expression = Text.FromBinary(Web.Contents(url,[IsRetry=true])),   
     sha256_url = "https://api.hashify.net/hash/sha256/hex?value=" &  Uri.EscapeDataString(expression),
