@@ -21,13 +21,13 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
                                 Table.TransformRows(count_new_workers, (r) =>
                                     Record.TransformFields(r,{
                                             { "שעות רגילות", each 
-                                                            if r[#"שעות רגילות?"] = "לא" then null 
-                                                            else if r[#"שעות נוספות?"] = "לא" then r[#"סה""כ שעות"]
+                                                            if r[#"שעות רגילות?"]? = "לא" then null 
+                                                            else if r[#"שעות נוספות?"]? = "לא" then r[#"סה""כ שעות"]
                                                             else _ 
                                                         },
-                                            { "שעות נוספות 125%", each if r[#"שעות נוספות?"] = "לא" then null else _ },
-                                            { "שעות נוספות 150%", each if r[#"שעות נוספות?"] = "לא" then null else _ },
-                                            { "שעות שבת וחג", each if r[#"שעות שבת וחג?"] = "לא" then null else _ }
+                                            { "שעות נוספות 125%", each if r[#"שעות נוספות?"]? = "לא" then null else _ },
+                                            { "שעות נוספות 150%", each if r[#"שעות נוספות?"]? = "לא" then null else _ },
+                                            { "שעות שבת וחג", each if r[#"שעות שבת וחג?"]? = "לא" then null else _ }
                                         }   
                                     )
                                 )
@@ -50,3 +50,4 @@ let WorkerDataSummary = (calculate_hours_data as table, worker_settings as table
         select_columns
 in 
     WorkerDataSummary
+// SIG:7d3b345b0bf88e41e38d3ec2e417d97d35a2c8d4116f1bb68bb38ddb3da8641bd0adb17fd89b32a44372fbfcba10ea6a41e4e20a559a982e9ab7b283a2580de2

@@ -125,3 +125,4 @@ let GenerateSalaryTable = (hours_table as table, shabat_and_holiday_table as tab
         rename_table_columns
 in GenerateSalaryTable
     
+// SIG:0b5105314cd63c5636f8ec2ea9b7440e7c6b68a2cf559b9c0b296f3d9d5953e54e2814383e14cc57e1083d2795e76abee764e5e5f0bf5614646c3aadc3bf3940

@@ -1,5 +1,6 @@
 let GetShabatAndHolidayTable = (year as number, month as number, optional geonameid_param as number) =>
     let
+        GetDataFromHebcal = (path) => Json.Document(Web.Contents("https://www.hebcal.com/" & path)),
         geonameid = geonameid_param ?? 295277,
         start_date = Date.ToText(#date(year, month, 1), "yyyy-MM-dd"),
         end_date = Date.ToText(Date.EndOfMonth(#date(year, month, 1)), "yyyy-MM-dd"),
@@ -47,3 +48,4 @@ let GetShabatAndHolidayTable = (year as number, month as number, optional geonam
     in
         combined
 in GetShabatAndHolidayTable
+// SIG:6fe840417c3d4cedca52df3871c394f9c91bf9f8b73c348c252a467d43f0ebc991d7ac91a9dbdd31438a3d448418468f84eedfcdc75fd5de5d127cafc9e0463f
