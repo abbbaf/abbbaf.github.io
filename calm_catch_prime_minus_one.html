@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Calm Catch</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:linear-gradient(#10192f,#26385a);font-family:Arial,sans-serif;color:#fff}
+canvas{display:block;width:100%;height:100%;touch-action:none}
+#hud{position:fixed;top:18px;left:0;width:100%;text-align:center;pointer-events:none;z-index:3}
+#score{font-size:34px;font-weight:700;text-shadow:0 2px 8px #000;transition:.2s}
+#score.prime{font-size:44px;color:#ffe96b;text-shadow:0 0 12px #fff,0 0 25px #ffe96b}
+#prime{height:22px;font-size:15px;opacity:0;transition:.2s}
+#prime.show{opacity:1}
+#penalty{font-size:15px;opacity:.82;margin-top:4px}
+#stage{font-size:18px;font-weight:700;margin-top:4px}
+#stageFlash{position:fixed;left:50%;top:45%;transform:translate(-50%,-50%) scale(.85);font-size:44px;font-weight:700;opacity:0;pointer-events:none;z-index:4;text-shadow:0 3px 12px #000;transition:.25s}
+#overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(5,10,25,.78);z-index:20;text-align:center}
+#overlay.show{display:flex}
+#overlayTitle{font-size:46px;font-weight:700;margin-bottom:10px}
+#overlayText{font-size:20px;opacity:.9;margin-bottom:25px}
+#restart{min-width:150px;min-height:54px;border:0;border-radius:999px;padding:14px 28px;font-size:20px;font-weight:700;background:#fff;color:#17243d;touch-action:manipulation}
+</style>
+</head>
+<body>
+<div id="hud">
+ <div id="score">10</div>
+ <div id="prime">★ מספר ראשוני ★</div>
+ <div id="penalty">פספוס: ‎−5%</div>
+ <div id="stage">שלב 1</div>
+</div>
+<div id="stageFlash">שלב 1</div>
+<canvas id="game"></canvas>
+<div id="overlay">
+ <div id="overlayTitle">Game Over</div>
+ <div id="overlayText">הניקוד הגיע ל־0</div>
+ <button id="restart" type="button">שחק שוב</button>
+</div>
+
+<script>
+(()=>{
+const c=document.getElementById("game"),ctx=c.getContext("2d");
+const scoreEl=document.getElementById("score");
+const primeEl=document.getElementById("prime");
+const penaltyEl=document.getElementById("penalty");
+const stageEl=document.getElementById("stage");
+const stageFlash=document.getElementById("stageFlash");
+const overlay=document.getElementById("overlay");
+const restart=document.getElementById("restart");
+
+let W=0,H=0,score=10,missPercent=5,stage=1,running=true;
+let drops=[],particles=[],stars=[];
+let lastSpawn=0,stageStarted=performance.now(),flashUntil=0;
+const player={x:0,y:0,targetX:0,r:28};
+
+function resize(){
+ W=c.width=innerWidth; H=c.height=innerHeight;
+ player.y=H-85;
+ if(!player.x){player.x=W/2;player.targetX=W/2}
+ player.x=Math.max(player.r,Math.min(W-player.r,player.x));
+ player.targetX=Math.max(player.r,Math.min(W-player.r,player.targetX));
+}
+addEventListener("resize",resize); resize();
+
+function makeStars(){
+ stars=[];
+ for(let i=0;i<60;i++)stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.8+.3,a:Math.random()*6.28});
+}
+makeStars();
+
+function isPrime(n){
+ if(n<2||!Number.isInteger(n))return false;
+ for(let i=2;i*i<=n;i++)if(n%i===0)return false;
+ return true;
+}
+function updateHud(){
+ scoreEl.textContent=score;
+ scoreEl.classList.toggle("prime",isPrime(score));
+ primeEl.classList.toggle("show",isPrime(score));
+ penaltyEl.textContent="פספוס: −"+missPercent+"%";
+ stageEl.textContent="שלב "+stage;
+}
+function showStage(now){
+ stageFlash.textContent="שלב "+stage;
+ stageFlash.style.opacity="1";
+ stageFlash.style.transform="translate(-50%,-50%) scale(1)";
+ flashUntil=now+1200;
+}
+function spawn(){
+ const gold=Math.random()<.10;
+ drops.push({x:25+Math.random()*(W-50),y:-25,r:gold?14:11+Math.random()*5,speed:1.2+Math.random()*1.2,gold,phase:Math.random()*6});
+}
+function burst(x,y,gold){
+ for(let i=0;i<12;i++)particles.push({x,y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4,life:1,gold});
+}
+function endGame(){
+ running=false;
+ overlay.classList.add("show");
+}
+function resetGame(){
+ score=10; missPercent=5; stage=1; running=true;
+ drops=[]; particles=[];
+ player.x=W/2; player.targetX=W/2; player.y=H-85;
+ const now=performance.now();
+ lastSpawn=now; stageStarted=now; flashUntil=0;
+ stageFlash.style.opacity="0";
+ stageFlash.style.transform="translate(-50%,-50%) scale(.85)";
+ overlay.classList.remove("show");
+ updateHud();
+}
+function move(x){
+ if(!running)return;
+ player.targetX=Math.max(player.r,Math.min(W-player.r,x));
+}
+c.addEventListener("pointerdown",e=>move(e.clientX));
+c.addEventListener("pointermove",e=>{if(e.buttons||e.pointerType==="touch")move(e.clientX)});
+
+restart.addEventListener("click",e=>{
+ e.preventDefault();
+ e.stopPropagation();
+ resetGame();
+});
+
+function loop(now){
+ ctx.clearRect(0,0,W,H);
+
+ for(const s of stars){
+  s.a+=.008;ctx.globalAlpha=.3+Math.sin(s.a)*.2;ctx.fillStyle="#fff";
+  ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+ }
+ ctx.globalAlpha=1;
+
+ if(running){
+  while(now-stageStarted>=30000 && missPercent<90){
+   stageStarted+=30000;
+   missPercent=Math.min(90,missPercent+5);
+   stage++;
+   updateHud();showStage(now);
+  }
+  if(now-lastSpawn>=650){spawn();lastSpawn=now}
+
+  player.x+=(player.targetX-player.x)*.12;
+
+  for(let i=drops.length-1;i>=0;i--){
+   const d=drops[i];
+   d.y+=d.speed; d.x+=Math.sin(now/500+d.phase)*.25;
+   const dx=d.x-player.x,dy=d.y-player.y;
+   if(Math.hypot(dx,dy)<d.r+player.r){
+    score+=d.gold?5:1; burst(d.x,d.y,d.gold); drops.splice(i,1); updateHud(); continue;
+   }
+   if(d.y>H+40){
+    drops.splice(i,1);
+    // Prime scores get a reduced penalty: only 1 point is lost.
+    if(isPrime(score)){
+      score=Math.max(0,score-1);
+    }else{
+      score=Math.max(0,Math.floor(score*(1-missPercent/100)));
+    }
+    updateHud();
+    if(score===0){endGame();break}
+   }
+  }
+ }
+
+ let g=ctx.createRadialGradient(player.x,player.y,2,player.x,player.y,45);
+ g.addColorStop(0,"rgba(150,220,255,.9)");g.addColorStop(1,"rgba(100,180,255,0)");
+ ctx.fillStyle=g;ctx.beginPath();ctx.arc(player.x,player.y,45,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle="#bdeaff";ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
+
+ for(const d of drops){
+  ctx.shadowBlur=d.gold?25:12;ctx.shadowColor=d.gold?"#ffd84d":"#9edcff";
+  ctx.fillStyle=d.gold?"#ffe36b":"#bcecff";ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;
+ }
+
+ for(let i=particles.length-1;i>=0;i--){
+  const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.97;p.vy*=.97;p.life-=.025;
+  ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.gold?"#ffe36b":"#d8f5ff";
+  ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();
+  if(p.life<=0)particles.splice(i,1);
+ }
+ ctx.globalAlpha=1;
+
+ if(flashUntil && now>=flashUntil){
+  flashUntil=0;stageFlash.style.opacity="0";stageFlash.style.transform="translate(-50%,-50%) scale(.85)";
+ }
+ requestAnimationFrame(loop);
+}
+updateHud();
+lastSpawn=performance.now();stageStarted=lastSpawn;
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
