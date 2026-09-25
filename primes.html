@@ -49,6 +49,7 @@ const stageFlash=document.getElementById("stageFlash");
 const overlay=document.getElementById("overlay");
 const restart=document.getElementById("restart");
 
+let lastFrameTime = performance.now();
 let W=0,H=0,score=10,missPercent=5,stage=1,running=true;
 let drops=[],particles=[],stars=[];
 let lastSpawn=0,stageStarted=performance.now(),flashUntil=0;
@@ -104,6 +105,7 @@ function resetGame(){
  player.x=W/2; player.targetX=W/2; player.y=H-85;
  const now=performance.now();
  lastSpawn=now; stageStarted=now; flashUntil=0;
+ lastFrameTime = now;
  stageFlash.style.opacity="0";
  stageFlash.style.transform="translate(-50%,-50%) scale(.85)";
  overlay.classList.remove("show");
@@ -123,6 +125,12 @@ restart.addEventListener("click",e=>{
 });
 
 function loop(now){
+ if(running && now-lastFrameTime > 1000){
+   const pausedTime=now-lastFrameTime;
+   stageStarted+=pausedTime;
+   lastSpawn+=pausedTime;
+ }
+ lastFrameTime=now;
  ctx.clearRect(0,0,W,H);
 
  for(const s of stars){
@@ -132,9 +140,9 @@ function loop(now){
  ctx.globalAlpha=1;
 
  if(running){
-  while(now-stageStarted>=30000 && missPercent<90){
+  while(now-stageStarted>=30000){
    stageStarted+=30000;
-   missPercent=Math.min(90,missPercent+5);
+   missPercent=Math.min(100,missPercent+5);
    stage++;
    updateHud();showStage(now);
   }
@@ -187,7 +195,7 @@ function loop(now){
  requestAnimationFrame(loop);
 }
 updateHud();
-lastSpawn=performance.now();stageStarted=lastSpawn;
+lastSpawn=performance.now();stageStarted=lastSpawn;lastFrameTime=lastSpawn;
 requestAnimationFrame(loop);
 })();
 </script>
