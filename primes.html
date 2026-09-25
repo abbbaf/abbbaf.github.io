@@ -49,6 +49,7 @@ const stageFlash=document.getElementById("stageFlash");
 const overlay=document.getElementById("overlay");
 const restart=document.getElementById("restart");
 
+let speedMultiplier = 1;
 let lastFrameTime = performance.now();
 let W=0,H=0,score=10,missPercent=5,stage=1,running=true;
 let drops=[],particles=[],stars=[];
@@ -100,6 +101,7 @@ function endGame(){
  overlay.classList.add("show");
 }
 function resetGame(){
+ speedMultiplier = 1;
  score=10; missPercent=5; stage=1; running=true;
  drops=[]; particles=[];
  player.x=W/2; player.targetX=W/2; player.y=H-85;
@@ -142,17 +144,19 @@ function loop(now){
  if(running){
   while(now-stageStarted>=30000){
    stageStarted+=30000;
-   missPercent=Math.min(100,missPercent+5);
+   missPercent=Math.min(80,missPercent+5);
    stage++;
    updateHud();showStage(now);
+   if (stage > 16) speedMultiplier *= 1.03;
   }
+
   if(now-lastSpawn>=650){spawn();lastSpawn=now}
 
   player.x+=(player.targetX-player.x)*.12;
 
   for(let i=drops.length-1;i>=0;i--){
    const d=drops[i];
-   d.y+=d.speed; d.x+=Math.sin(now/500+d.phase)*.25;
+   d.y+=d.speed*speedMultiplier; d.x+=Math.sin(now/500+d.phase)*.25;
    const dx=d.x-player.x,dy=d.y-player.y;
    if(Math.hypot(dx,dy)<d.r+player.r){
     score+=d.gold?5:1; burst(d.x,d.y,d.gold); drops.splice(i,1); updateHud(); continue;
