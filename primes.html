@@ -521,7 +521,7 @@ function handleStageChange(now){
   missPercent=Math.min(80,missPercent+5);
   penaltyChanged=true;
  }else{
-  speedMultiplier*=1.05;
+  speedMultiplier=Math.min(3,speedMultiplier*1.05);
  }
 
  if(stage>bestStage){
