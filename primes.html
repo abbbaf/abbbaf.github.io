@@ -197,12 +197,11 @@ let lastSpawn=0,stageStarted=performance.now(),flashUntil=0,primePulse=0,catchPu
 let rareEvent=null,nextRareStage=4,rareSequenceIndex=0;
 let lastFrameTime=performance.now();
 let solarStarted=performance.now();
+let spaceOnlyMessageShown=false;
 
 const BASE_MIN_SPEED=72,BASE_MAX_SPEED=144;
 const SPAWN_INTERVAL=650,STAGE_LENGTH=25000;
 let bestStage=Number(localStorage.getItem("calmCatchBestStage"))||1;
-let recordAtStart=bestStage;
-let newRecordShown=false;
 const player={x:0,y:0,targetX:0,r:28};
 
 function resize(){
@@ -263,11 +262,10 @@ function endGame(){
 function resetGame(){
  speedMultiplier=1;score=10;missPercent=5;stage=1;running=true;
  catches=0;misses=0;streak=0;bestStreak=0;
- recordAtStart=bestStage;newRecordShown=false;
- nextRareStage=4;rareEvent=null;rareSequenceIndex=0;
+  nextRareStage=4;rareEvent=null;rareSequenceIndex=0;
  drops=[];particles=[];primePulse=0;catchPulse=0;stageWave=0;missFlash=0;
  player.x=W/2;player.targetX=W/2;player.y=H-85;
- const now=performance.now();lastSpawn=now;stageStarted=now;solarStarted=now;flashUntil=0;lastFrameTime=now;
+ const now=performance.now();lastSpawn=now;stageStarted=now;solarStarted=now;spaceOnlyMessageShown=false;flashUntil=0;lastFrameTime=now;
  stageFlash.style.opacity="0";stageFlash.style.transform="translate(-50%,-50%) scale(.85)";missFeedback.style.opacity="0";missFeedbackUntil=0;
  overlay.classList.remove("show");stageProgressBar.style.width="0%";updateHud();
 }
@@ -407,14 +405,16 @@ function drawRareEvent(now,dt){
 const SOLAR_AU_SECONDS=60;
 const MERCURY_DIAMETER_KM=4879;
 const SOLAR_PLANETS=[
- {name:"Mercury",au:.3871,diameter:4879,x:.68,kind:"mercury"},
- {name:"Venus",au:.7233,diameter:12104,x:.31,kind:"venus"},
- {name:"Earth",au:1.0000,diameter:12742,x:.63,kind:"earth"},
- {name:"Mars",au:1.5237,diameter:6779,x:.36,kind:"mars"},
- {name:"Jupiter",au:5.2028,diameter:139820,x:.50,kind:"jupiter"},
- {name:"Saturn",au:9.5388,diameter:116460,x:.48,kind:"saturn"},
- {name:"Uranus",au:19.1914,diameter:51118,x:.61,kind:"uranus"},
- {name:"Neptune",au:30.0611,diameter:49528,x:.39,kind:"neptune"}
+ {name:"Mercury",label:"כוכב חמה",au:.3871,diameter:4879,x:.68,kind:"mercury"},
+ {name:"Venus",label:"נוגה",au:.7233,diameter:12104,x:.31,kind:"venus"},
+ {name:"Earth",label:"כדור הארץ",au:1.0000,diameter:12742,x:.63,kind:"earth"},
+ {name:"Mars",label:"מאדים",au:1.5237,diameter:6779,x:.36,kind:"mars"},
+ {name:"Jupiter",label:"צדק",au:5.2028,diameter:139820,x:.50,kind:"jupiter"},
+ {name:"Saturn",label:"שבתאי",au:9.5388,diameter:116460,x:.48,kind:"saturn"},
+ {name:"Uranus",label:"אורנוס",au:19.1914,diameter:51118,x:.61,kind:"uranus"},
+ {name:"Neptune",label:"נפטון",au:30.0611,diameter:49528,x:.39,kind:"neptune"},
+ {name:"Pluto",label:"פלוטו",au:39.482,diameter:2376.6,x:.57,kind:"pluto"},
+ {name:"Eris",label:"אריס",au:67.781,diameter:2326,x:.43,kind:"eris"}
 ];
 function planetPx(p){return 12*(p.diameter/MERCURY_DIAMETER_KM)}
 function circle(x,y,r,fill){ctx.fillStyle=fill;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
@@ -422,7 +422,7 @@ function drawPlanetDisc(p,x,y,d){
  const r=d/2;ctx.save();ctx.translate(x,y);
  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.clip();
  let grad=ctx.createRadialGradient(-r*.32,-r*.34,r*.05,0,0,r*1.15);
- if(p.kind==="mercury"){grad.addColorStop(0,"#c9c2b7");grad.addColorStop(.55,"#8e887f");grad.addColorStop(1,"#4d4b49")}
+ if((p.kind==="mercury"||p.kind==="pluto"||p.kind==="eris")){grad.addColorStop(0,"#c9c2b7");grad.addColorStop(.55,"#8e887f");grad.addColorStop(1,"#4d4b49")}
  if(p.kind==="venus"){grad.addColorStop(0,"#f2d59a");grad.addColorStop(.55,"#c99a55");grad.addColorStop(1,"#79552f")}
  if(p.kind==="earth"){grad.addColorStop(0,"#6fc6ee");grad.addColorStop(.58,"#267bb5");grad.addColorStop(1,"#123d68")}
  if(p.kind==="mars"){grad.addColorStop(0,"#d98358");grad.addColorStop(.55,"#a64f32");grad.addColorStop(1,"#5f2d27")}
@@ -471,6 +471,18 @@ function solarPlanetOnScreen(now){
 function drawSolarSystem(now){
  if(!running)return;
  const elapsed=(now-solarStarted)/1000;
+ if(!spaceOnlyMessageShown){
+  const eris=SOLAR_PLANETS.find(p=>p.kind==="eris");
+  if(eris){
+   const erisEncounter=eris.au*SOLAR_AU_SECONDS;
+   const erisD=planetPx(eris);
+   const erisY=((elapsed-erisEncounter)/10)*H;
+   if(erisY>H+erisD){
+    spaceOnlyMessageShown=true;
+    showMessage("מכאן והלאה — רק חלל","");
+   }
+  }
+ }
  for(const p of SOLAR_PLANETS){
   const encounter=p.au*SOLAR_AU_SECONDS;
   // Center travels exactly one screen height in 10 seconds.
@@ -479,6 +491,15 @@ function drawSolarSystem(now){
   if(y < -d-extra || y > H+d+extra)continue;
   const x=Math.max(d*.58,Math.min(W-d*.58,W*p.x));
   drawPlanetDisc(p,x,y,d);
+  const labelY=y+d/2+18;
+  if(labelY>-20&&labelY<H+20){
+   ctx.save();
+   ctx.font="600 13px system-ui, sans-serif";
+   ctx.textAlign="center";ctx.textBaseline="middle";ctx.lineWidth=3;
+   ctx.strokeStyle="rgba(0,0,0,.48)";ctx.fillStyle="rgba(255,255,255,.82)";
+   ctx.strokeText(p.label||p.name,x,labelY);ctx.fillText(p.label||p.name,x,labelY);
+   ctx.restore();
+  }
  }
 }
 
@@ -502,12 +523,7 @@ function handleStageChange(now){
 
  updateHud();
 
- if(stage>recordAtStart && !newRecordShown){
-  newRecordShown=true;
-  showMessage("★ שיא חדש — שלב "+stage+" ★",now,penaltyChanged?"−"+missPercent+"% על כל פספוס":"");
- }else{
-  showMessage("שלב "+stage,now,penaltyChanged?"−"+missPercent+"% על כל פספוס":"");
- }
+ showMessage("שלב "+stage,now,penaltyChanged?"−"+missPercent+"% על כל פספוס":"");
 }
 
 function loop(now){
