@@ -91,6 +91,15 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
  background:rgba(255,255,255,.82);
  border-radius:999px
 }
+#solarDistance{
+ font-size:11px;
+ font-weight:500;
+ opacity:.72;
+ direction:rtl;
+ white-space:nowrap;
+ margin-top:2px;
+ font-variant-numeric:tabular-nums;
+}
 #stage{
  font-size:20px;
  font-weight:700;
@@ -158,6 +167,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
  <div id="hudRight">
   <div id="stage">שלב 1</div>
       <div id="stageProgress"><div id="stageProgressBar"></div></div>
+      <div id="solarDistance">0 ק״מ</div>
       
     </div>
 </div>
@@ -181,6 +191,7 @@ const primeEl=document.getElementById("prime");
 const stageEl=document.getElementById("stage");
 const streakEl=document.getElementById("streak");
 const stageProgressBar=document.getElementById("stageProgressBar");
+const solarDistanceEl=document.getElementById("solarDistance");
 const stageFlash=document.getElementById("stageFlash");
 const stageFlashTitle=document.getElementById("stageFlashTitle");
 const stageFlashPenalty=document.getElementById("stageFlashPenalty");
@@ -267,7 +278,7 @@ function resetGame(){
  player.x=W/2;player.targetX=W/2;player.y=H-85;
  const now=performance.now();lastSpawn=now;stageStarted=now;solarStarted=now;spaceOnlyMessageShown=false;flashUntil=0;lastFrameTime=now;
  stageFlash.style.opacity="0";stageFlash.style.transform="translate(-50%,-50%) scale(.85)";missFeedback.style.opacity="0";missFeedbackUntil=0;
- overlay.classList.remove("show");stageProgressBar.style.width="0%";updateHud();
+ overlay.classList.remove("show");stageProgressBar.style.width="0%";solarDistanceEl.textContent="0 ק״מ";updateHud();
 }
 function move(x){if(!running)return;player.targetX=Math.max(player.r,Math.min(W-player.r,x))}
 c.addEventListener("pointerdown",e=>move(e.clientX));
@@ -403,6 +414,7 @@ function drawRareEvent(now,dt){
 // Scale: 1 AU = 60 seconds = 6 screen heights; therefore one screen = 10 seconds.
 // Planet diameters preserve their real ratios, with Mercury = 12 CSS px.
 const SOLAR_AU_SECONDS=45;
+const AU_KM=149597870.7;
 const MERCURY_DIAMETER_KM=4879;
 const SOLAR_PLANETS=[
  {name:"Mercury",label:"כוכב חמה",au:.3871,diameter:4879,x:.68,kind:"mercury"},
@@ -419,7 +431,15 @@ const SOLAR_PLANETS=[
 function planetPx(p){return 12*(p.diameter/MERCURY_DIAMETER_KM)}
 function circle(x,y,r,fill){ctx.fillStyle=fill;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
 function drawPlanetDisc(p,x,y,d){
- const r=d/2;ctx.save();ctx.translate(x,y);
+ const r=d/2;
+ // Saturn rear half of the ring, behind the planet body.
+ if(p.kind==="saturn"){
+  ctx.save();ctx.translate(x,y);ctx.rotate(-.18);
+  ctx.strokeStyle="rgba(220,202,160,.72)";
+  ctx.lineWidth=Math.max(3,d*.055);
+  ctx.beginPath();ctx.ellipse(0,0,r*1.55,r*.42,0,Math.PI,Math.PI*2);ctx.stroke();
+  ctx.restore();
+ }ctx.save();ctx.translate(x,y);
  ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.clip();
  let grad=ctx.createRadialGradient(-r*.32,-r*.34,r*.05,0,0,r*1.15);
  if((p.kind==="mercury"||p.kind==="pluto"||p.kind==="eris")){grad.addColorStop(0,"#c9c2b7");grad.addColorStop(.55,"#8e887f");grad.addColorStop(1,"#4d4b49")}
@@ -539,6 +559,9 @@ function loop(now){
   const pausedTime=now-lastFrameTime;stageStarted+=pausedTime;lastSpawn+=pausedTime;solarStarted+=pausedTime;
  }
  const dt=Math.min((now-lastFrameTime)/1000,0.05);lastFrameTime=now;
+ const solarElapsed=Math.max(0,(now-solarStarted)/1000);
+ const solarKm=Math.floor((solarElapsed/SOLAR_AU_SECONDS)*AU_KM);
+ solarDistanceEl.textContent=solarKm.toLocaleString("en-US")+" ק״מ";
  ctx.clearRect(0,0,W,H);
 
  for(const s of stars){
@@ -591,8 +614,7 @@ function loop(now){
    if(d.y>H+40){
     drops.splice(i,1);misses++;streak=0;missFlash=1;
     if(isPrime(score)){
-     score=Math.max(0,score-1);
-     missFeedback.textContent="−1";
+     missFeedback.textContent="";
      missFeedback.classList.add("protected");
     }else{
      score=Math.max(0,Math.floor(score*(1-missPercent/100)));
