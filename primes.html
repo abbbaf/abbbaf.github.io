@@ -32,6 +32,22 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
  white-space:nowrap
 }
 #streak{opacity:.85;transition:.2s}
+#muteBtn{
+ pointer-events:auto;
+ border:1px solid rgba(255,255,255,.22);
+ background:rgba(8,14,28,.34);
+ color:#fff;
+ width:32px;height:32px;
+ border-radius:50%;
+ display:grid;place-items:center;
+ padding:0;
+ font-size:16px;line-height:1;
+ cursor:pointer;
+ opacity:.82;
+ touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent
+}
+#muteBtn:active{transform:scale(.94)}
 
 
 #hudCenter{
@@ -154,6 +170,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 <div id="hud">
  <div id="hudLeft">
   <div id="streak">רצף 0</div>
+  <button id="muteBtn" type="button" aria-label="השתק צלילים" title="השתק צלילים">🔊</button>
  </div>
 
  <div id="hudCenter">
@@ -196,6 +213,39 @@ const stageFlash=document.getElementById("stageFlash");
 const stageFlashTitle=document.getElementById("stageFlashTitle");
 const stageFlashPenalty=document.getElementById("stageFlashPenalty");
 const missFeedback=document.getElementById("missFeedback");
+const muteBtn=document.getElementById("muteBtn");
+
+// Game audio. Audio starts after the first user interaction, as required by modern browsers.
+let audioCtx=null,audioEnabled=false,audioMuted=false;
+function enableAudio(){
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  audioEnabled=true;
+ }catch(e){}
+}
+function audioTone(freq,start,dur,gain=.055,endFreq=0,type="sine"){
+ if(!audioEnabled||audioMuted||!audioCtx)return;
+ const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+start;
+ o.type=type;o.frequency.setValueAtTime(freq,t);
+ if(endFreq)o.frequency.exponentialRampToValueAtTime(endFreq,t+dur);
+ g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+ o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.03);
+}
+function soundCatch(){audioTone(480,0,.10,.07,690);audioTone(760,.05,.08,.025,880)}
+function soundGold(){audioTone(650,0,.12,.07,850);audioTone(980,.07,.18,.06,1280)}
+function soundMiss(){audioTone(410,0,.20,.05,250)}
+addEventListener("pointerdown",enableAudio,{passive:true});
+addEventListener("keydown",enableAudio,{passive:true});
+muteBtn.addEventListener("pointerdown",e=>e.stopPropagation());
+muteBtn.addEventListener("click",e=>{
+ e.stopPropagation();
+ if(!audioCtx)enableAudio();
+ audioMuted=!audioMuted;
+ muteBtn.textContent=audioMuted?"🔇":"🔊";
+ muteBtn.setAttribute("aria-label",audioMuted?"הפעל צלילים":"השתק צלילים");
+ muteBtn.title=audioMuted?"הפעל צלילים":"השתק צלילים";
+});
 const overlay=document.getElementById("overlay");
 const overlayText=document.getElementById("overlayText");
 const restart=document.getElementById("restart");
@@ -657,7 +707,8 @@ function loop(now){
     
     burst(d.x,d.y,d.gold,d.gold);drops.splice(i,1);
     catchPulse=Math.min(1,catchPulse+.7);
-    if(!wasPrime&&isPrime(score))primePulse=1;
+    if(d.gold)soundGold();else soundCatch();
+    if(!wasPrime&&isPrime(score)){primePulse=1}
     updateHud();continue;
    }
 
@@ -671,6 +722,7 @@ function loop(now){
      score=Math.max(0,Math.floor(score*(1-missPercent/100)));
      missFeedback.textContent="−"+missPercent+"%";
      missFeedback.classList.remove("protected");
+     soundMiss();
     }
     missFeedback.style.opacity="1";
     missFeedbackUntil=now+650;
