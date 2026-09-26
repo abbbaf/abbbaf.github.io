@@ -232,9 +232,9 @@ function audioTone(freq,start,dur,gain=.055,endFreq=0,type="sine"){
  g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(gain,t+.012);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
  o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+dur+.03);
 }
-function soundCatch(){audioTone(480,0,.10,.14,690);audioTone(760,.05,.08,.05,880)}
-function soundGold(){audioTone(650,0,.12,.14,850);audioTone(980,.07,.18,.12,1280)}
-function soundMiss(){audioTone(410,0,.20,.10,250)}
+function soundCatch(){audioTone(480,0,.10,.28,690);audioTone(760,.05,.08,.10,880)}
+function soundGold(){audioTone(650,0,.12,.28,850);audioTone(980,.07,.18,.24,1280)}
+function soundMiss(){audioTone(410,0,.20,.20,250)}
 addEventListener("pointerdown",enableAudio,{passive:true});
 addEventListener("keydown",enableAudio,{passive:true});
 muteBtn.addEventListener("pointerdown",e=>e.stopPropagation());
