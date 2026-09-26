@@ -450,9 +450,17 @@ function drawPlanetDisc(p,x,y,d){
  }
  ctx.restore();
  // Saturn's rings are outside the clipped disc and do not change Saturn's body diameter.
- if(p.kind==="saturn"){
-  ctx.save();ctx.translate(x,y);ctx.rotate(-.18);ctx.strokeStyle="rgba(220,202,160,.72)";ctx.lineWidth=Math.max(3,d*.055);ctx.beginPath();ctx.ellipse(0,0,r*1.55,r*.42,0,0,Math.PI*2);ctx.stroke();ctx.restore();
- }
+if(p.kind==="saturn"){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(-.18);
+  ctx.strokeStyle="rgba(220,202,160,.72)";
+  ctx.lineWidth=Math.max(3,d*.055);
+  ctx.beginPath();
+  ctx.ellipse(0,0,r*1.55,r*.42,0,0,Math.PI);
+  ctx.stroke();
+  ctx.restore();
+}
  // Soft limb highlight, useful for the smallest planets without altering their physical disc size.
  ctx.save();ctx.strokeStyle="rgba(220,240,255,.20)";ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r+.5,0,Math.PI*2);ctx.stroke();ctx.restore();
 }
