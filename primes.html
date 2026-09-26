@@ -496,9 +496,59 @@ function solarPlanetOnScreen(now){
  return false;
 }
 
+function drawSunStart(elapsed){
+ // The Sun begins above the player as an enormous surface and moves downward on the
+ // same travel scale used by the planets: one screen height = 10 seconds.
+ const sunDiameter=12*(1392700/MERCURY_DIAMETER_KM);
+ const r=sunDiameter/2;
+ const x=W/2;
+ // At t=0 the Sun's topmost point is exactly at the top edge of the screen.
+ // As the journey begins, the entire Sun moves downward and is left behind.
+ const y=r+(elapsed/10)*H;
+ if(y-r>H+80)return;
+
+ ctx.save();
+
+ // Wide atmospheric glow above the visible limb.
+ const glow=ctx.createRadialGradient(x,y,r*.78,x,y,r*1.10);
+ glow.addColorStop(0,"rgba(255,214,78,.20)");
+ glow.addColorStop(.82,"rgba(255,142,30,.12)");
+ glow.addColorStop(1,"rgba(255,100,20,0)");
+ ctx.fillStyle=glow;
+ ctx.beginPath();ctx.arc(x,y,r*1.10,0,Math.PI*2);ctx.fill();
+
+ // Solar surface.
+ const g=ctx.createRadialGradient(x-r*.18,y-r*.30,r*.08,x,y,r);
+ g.addColorStop(0,"#fff3a0");
+ g.addColorStop(.38,"#ffc84f");
+ g.addColorStop(.76,"#f28a24");
+ g.addColorStop(1,"#b94716");
+ ctx.fillStyle=g;
+ ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
+
+ // Subtle plasma texture, clipped to the Sun.
+ ctx.save();
+ ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.clip();
+ for(let i=0;i<22;i++){
+  const a=i*2.3999632297;
+  const rr=r*(.12+.76*((i*37)%101)/100);
+  const px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;
+  ctx.fillStyle=i%3===0?"rgba(255,245,160,.13)":"rgba(165,55,12,.10)";
+  ctx.beginPath();ctx.arc(px,py,Math.max(5,r*.018+(i%5)*2),0,Math.PI*2);ctx.fill();
+ }
+ ctx.restore();
+
+ // Bright solar limb.
+ ctx.strokeStyle="rgba(255,229,105,.72)";
+ ctx.lineWidth=Math.max(2,r*.008);
+ ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.stroke();
+ ctx.restore();
+}
+
 function drawSolarSystem(now){
  if(!running)return;
  const elapsed=(now-solarStarted)/1000;
+ drawSunStart(elapsed);
  if(!spaceOnlyMessageShown){
   const eris=SOLAR_PLANETS.find(p=>p.kind==="eris");
   if(eris){
@@ -614,7 +664,8 @@ function loop(now){
    if(d.y>H+40){
     drops.splice(i,1);misses++;streak=0;missFlash=1;
     if(isPrime(score)){
-     missFeedback.textContent="";
+     score=Math.max(0,score-1);
+     missFeedback.textContent="−1";
      missFeedback.classList.add("protected");
     }else{
      score=Math.max(0,Math.floor(score*(1-missPercent/100)));
