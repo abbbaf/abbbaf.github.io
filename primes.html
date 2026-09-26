@@ -196,6 +196,7 @@ let drops=[],particles=[],stars=[];
 let lastSpawn=0,stageStarted=performance.now(),flashUntil=0,primePulse=0,catchPulse=0,stageWave=0,missFlash=0,missFeedbackUntil=0;
 let rareEvent=null,nextRareStage=4,rareSequenceIndex=0;
 let lastFrameTime=performance.now();
+let solarStarted=performance.now();
 
 const BASE_MIN_SPEED=72,BASE_MAX_SPEED=144;
 const SPAWN_INTERVAL=650,STAGE_LENGTH=25000;
@@ -266,7 +267,7 @@ function resetGame(){
  nextRareStage=4;rareEvent=null;rareSequenceIndex=0;
  drops=[];particles=[];primePulse=0;catchPulse=0;stageWave=0;missFlash=0;
  player.x=W/2;player.targetX=W/2;player.y=H-85;
- const now=performance.now();lastSpawn=now;stageStarted=now;flashUntil=0;lastFrameTime=now;
+ const now=performance.now();lastSpawn=now;stageStarted=now;solarStarted=now;flashUntil=0;lastFrameTime=now;
  stageFlash.style.opacity="0";stageFlash.style.transform="translate(-50%,-50%) scale(.85)";missFeedback.style.opacity="0";missFeedbackUntil=0;
  overlay.classList.remove("show");stageProgressBar.style.width="0%";updateHud();
 }
@@ -399,9 +400,91 @@ function drawRareEvent(now,dt){
  if((e.dir>0&&e.x>W+130)||(e.dir<0&&e.x<-130))rareEvent=null;
 }
 
+
+// Solar System progression. Orbital distances use real relative semi-major axes.
+// Scale: 1 AU = 60 seconds = 6 screen heights; therefore one screen = 10 seconds.
+// Planet diameters preserve their real ratios, with Mercury = 12 CSS px.
+const SOLAR_AU_SECONDS=60;
+const MERCURY_DIAMETER_KM=4879;
+const SOLAR_PLANETS=[
+ {name:"Mercury",au:.3871,diameter:4879,x:.68,kind:"mercury"},
+ {name:"Venus",au:.7233,diameter:12104,x:.31,kind:"venus"},
+ {name:"Earth",au:1.0000,diameter:12742,x:.63,kind:"earth"},
+ {name:"Mars",au:1.5237,diameter:6779,x:.36,kind:"mars"},
+ {name:"Jupiter",au:5.2028,diameter:139820,x:.50,kind:"jupiter"},
+ {name:"Saturn",au:9.5388,diameter:116460,x:.48,kind:"saturn"},
+ {name:"Uranus",au:19.1914,diameter:51118,x:.61,kind:"uranus"},
+ {name:"Neptune",au:30.0611,diameter:49528,x:.39,kind:"neptune"}
+];
+function planetPx(p){return 12*(p.diameter/MERCURY_DIAMETER_KM)}
+function circle(x,y,r,fill){ctx.fillStyle=fill;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill()}
+function drawPlanetDisc(p,x,y,d){
+ const r=d/2;ctx.save();ctx.translate(x,y);
+ ctx.beginPath();ctx.arc(0,0,r,0,Math.PI*2);ctx.clip();
+ let grad=ctx.createRadialGradient(-r*.32,-r*.34,r*.05,0,0,r*1.15);
+ if(p.kind==="mercury"){grad.addColorStop(0,"#c9c2b7");grad.addColorStop(.55,"#8e887f");grad.addColorStop(1,"#4d4b49")}
+ if(p.kind==="venus"){grad.addColorStop(0,"#f2d59a");grad.addColorStop(.55,"#c99a55");grad.addColorStop(1,"#79552f")}
+ if(p.kind==="earth"){grad.addColorStop(0,"#6fc6ee");grad.addColorStop(.58,"#267bb5");grad.addColorStop(1,"#123d68")}
+ if(p.kind==="mars"){grad.addColorStop(0,"#d98358");grad.addColorStop(.55,"#a64f32");grad.addColorStop(1,"#5f2d27")}
+ if(p.kind==="jupiter"){grad.addColorStop(0,"#ead7b4");grad.addColorStop(.6,"#b9825c");grad.addColorStop(1,"#684a3b")}
+ if(p.kind==="saturn"){grad.addColorStop(0,"#f0ddb0");grad.addColorStop(.6,"#c6a66c");grad.addColorStop(1,"#796345")}
+ if(p.kind==="uranus"){grad.addColorStop(0,"#b9f0ef");grad.addColorStop(.6,"#73cfd3");grad.addColorStop(1,"#3b8e9e")}
+ if(p.kind==="neptune"){grad.addColorStop(0,"#6595f5");grad.addColorStop(.58,"#2856c8");grad.addColorStop(1,"#152b78")}
+ ctx.fillStyle=grad;ctx.fillRect(-r,-r,d,d);
+ // Recognizable surface cues, clipped to the planet.
+ if(p.kind==="earth"){
+  ctx.fillStyle="rgba(88,145,72,.9)";
+  ctx.beginPath();ctx.ellipse(-r*.18,-r*.12,r*.25,r*.13,-.45,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.ellipse(r*.18,r*.20,r*.18,r*.28,.45,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="rgba(255,255,255,.65)";ctx.lineWidth=Math.max(1,d*.025);ctx.beginPath();ctx.arc(0,0,r*.72,.2,2.4);ctx.stroke();
+ }
+ if(p.kind==="jupiter"||p.kind==="saturn"){
+  const bands=p.kind==="jupiter"?9:7;
+  for(let i=0;i<bands;i++){
+   const yy=-r+(i+.5)*d/bands;ctx.fillStyle=i%2?"rgba(91,48,34,.22)":"rgba(255,245,218,.22)";ctx.fillRect(-r,yy,d,d/(bands*2.1));
+  }
+  if(p.kind==="jupiter"&&d>80){ctx.fillStyle="rgba(172,75,53,.72)";ctx.beginPath();ctx.ellipse(r*.28,r*.20,r*.18,r*.09,-.08,0,Math.PI*2);ctx.fill()}
+ }
+ if((p.kind==="mercury"||p.kind==="mars")&&d>=12){
+  ctx.fillStyle="rgba(40,30,28,.18)";circle(-r*.18,-r*.12,Math.max(1,r*.13),ctx.fillStyle);circle(r*.22,r*.18,Math.max(1,r*.10),ctx.fillStyle);
+ }
+ ctx.restore();
+ // Saturn's rings are outside the clipped disc and do not change Saturn's body diameter.
+ if(p.kind==="saturn"){
+  ctx.save();ctx.translate(x,y);ctx.rotate(-.18);ctx.strokeStyle="rgba(220,202,160,.72)";ctx.lineWidth=Math.max(3,d*.055);ctx.beginPath();ctx.ellipse(0,0,r*1.55,r*.42,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+ }
+ // Soft limb highlight, useful for the smallest planets without altering their physical disc size.
+ ctx.save();ctx.strokeStyle="rgba(220,240,255,.20)";ctx.lineWidth=1;ctx.beginPath();ctx.arc(x,y,r+.5,0,Math.PI*2);ctx.stroke();ctx.restore();
+}
+function solarPlanetOnScreen(now){
+ if(!running)return false;
+ const elapsed=(now-solarStarted)/1000;
+ for(const p of SOLAR_PLANETS){
+  const encounter=p.au*SOLAR_AU_SECONDS;
+  const y=((elapsed-encounter)/10)*H;
+  const d=planetPx(p),extra=p.kind==="saturn"?d*.45:0;
+  if(y >= -d-extra && y <= H+d+extra)return true;
+ }
+ return false;
+}
+
+function drawSolarSystem(now){
+ if(!running)return;
+ const elapsed=(now-solarStarted)/1000;
+ for(const p of SOLAR_PLANETS){
+  const encounter=p.au*SOLAR_AU_SECONDS;
+  // Center travels exactly one screen height in 10 seconds.
+  const y=((elapsed-encounter)/10)*H;
+  const d=planetPx(p),extra=p.kind==="saturn"?d*.45:0;
+  if(y < -d-extra || y > H+d+extra)continue;
+  const x=Math.max(d*.58,Math.min(W-d*.58,W*p.x));
+  drawPlanetDisc(p,x,y,d);
+ }
+}
+
 function handleStageChange(now){
  stage++;
- if(stage>=nextRareStage&&!rareEvent)launchRareEvent();
+ if(stage>=nextRareStage&&!rareEvent&&!solarPlanetOnScreen(now))launchRareEvent();
  stageWave=1;
  let penaltyChanged=false;
 
@@ -429,7 +512,7 @@ function handleStageChange(now){
 
 function loop(now){
  if(running&&now-lastFrameTime>1000){
-  const pausedTime=now-lastFrameTime;stageStarted+=pausedTime;lastSpawn+=pausedTime;
+  const pausedTime=now-lastFrameTime;stageStarted+=pausedTime;lastSpawn+=pausedTime;solarStarted+=pausedTime;
  }
  const dt=Math.min((now-lastFrameTime)/1000,0.05);lastFrameTime=now;
  ctx.clearRect(0,0,W,H);
@@ -450,6 +533,9 @@ function loop(now){
  bg.addColorStop(.48,"rgba("+(42+Math.floor(45*atmosphere))+",75,"+(145+Math.floor(35*atmosphere))+","+(.04+.055*atmosphere)+")");
  bg.addColorStop(1,"rgba(20,35,80,0)");
  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+ // Real-ratio Solar System milestones behind all gameplay elements.
+ drawSolarSystem(now);
 
  if(running){
   const stageProgress=Math.max(0,Math.min(1,(now-stageStarted)/STAGE_LENGTH));
@@ -509,6 +595,7 @@ function loop(now){
  ctx.fillStyle=prime?"#ffe96b":"#bdeaff";ctx.beginPath();ctx.arc(player.x,player.y,player.r,0,Math.PI*2);ctx.fill();
 
  // Rare decorative visitor; drawn behind gameplay drops.
+ if(rareEvent&&solarPlanetOnScreen(now))rareEvent=null;
  drawRareEvent(now,dt);
 
  for(const d of drops){
@@ -548,7 +635,7 @@ function loop(now){
 }
 
 updateHud();
-lastSpawn=performance.now();stageStarted=lastSpawn;lastFrameTime=lastSpawn;
+lastSpawn=performance.now();stageStarted=lastSpawn;solarStarted=lastSpawn;lastFrameTime=lastSpawn;
 requestAnimationFrame(loop);
 })();
 </script>
