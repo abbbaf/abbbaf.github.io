@@ -1,0 +1,18 @@
+<svg xmlns='http://www.w3.org/2000/svg' width='512' height='512' viewBox='0 0 512 512'>
+<defs>
+  <radialGradient id='g' cx='34%' cy='28%' r='72%'>
+    <stop offset='0%' stop-color='#d6d2e8'/>
+    <stop offset='58%' stop-color='#8c87a9'/>
+    <stop offset='100%' stop-color='#4f4b61'/>
+  </radialGradient>
+</defs>
+
+<circle cx='256' cy='256' r='185' fill='url(#g)'/>
+<ellipse cx='198' cy='204' rx='38' ry='29' fill='#716d87' opacity='0.42'/>
+<ellipse cx='315' cy='168' rx='28' ry='20' fill='#4f4b61' opacity='0.33'/>
+<ellipse cx='296' cy='308' rx='48' ry='35' fill='#716d87' opacity='0.36'/>
+<ellipse cx='162' cy='315' rx='22' ry='17' fill='#4f4b61' opacity='0.25'/>
+<path d='M160 117 C224 92 309 99 362 140 C385 157 404 179 417 205 C398 190 372 177 341 168 C280 148 218 148 160 159 C140 163 121 168 104 175 C116 151 135 131 160 117 Z' fill='#ffffff' opacity='0.16'/>
+<path d='M365 374 C323 410 253 425 189 413 C262 433 351 411 408 357 C417 349 425 340 432 331 C413 347 390 362 365 374 Z' fill='black' opacity='0.25'/>
+
+</svg>
