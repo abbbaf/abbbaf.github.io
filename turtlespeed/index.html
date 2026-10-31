@@ -4089,7 +4089,7 @@ body:has(#gameConfirmOverlay.show) #levelCompleteOverlay .tsStageStar {
  min-height:54px;border:0;border-radius:16px;background:#a6f1df;color:#102b3c;
  font-size:19px;font-weight:800;cursor:pointer;padding:12px;
 }
-#tsStartRestart,#tsStartConfirmCancel{
+#tsStartRestart,#tsStartCancel,#tsStartConfirmCancel{
  min-height:46px;border:1px solid #486280;border-radius:14px;
  background:transparent;color:#d5e5f4;font-size:15px;font-weight:600;cursor:pointer;padding:10px;
 }
@@ -4127,6 +4127,7 @@ body:has(#gameConfirmOverlay.show) #levelCompleteOverlay .tsStageStar {
   <div id="tsStartActions">
    <button id="tsStartPrimary" type="button" disabled>התחל משחק</button>
    <button id="tsStartRestart" type="button" hidden disabled>התחל משחק מחדש</button>
+   <button id="tsStartCancel" type="button" hidden>ביטול — חזור למשחק</button>
   </div>
   <div id="tsStartConfirm" hidden>
    <p>ההתקדמות במסע הנוכחי תימחק. השיאים האישיים יישמרו.</p>
@@ -4888,7 +4889,7 @@ const TS_AUDIO_COMPLETE='level complete.mp3';
 const TS_AUDIO_VICTORY='victory.mp3';
 const TS_AUDIO_CATCH='blue ball catch.mp3';
 const TS_AUDIO_GOLD='gold ball catch.mp3';
-const TS_AUDIO_LOSE='lose a life.mp3';
+const TS_AUDIO_LOSE='lose a life-phone.mp3'; // Enhanced midrange for phone speakers.
 const tsAudio=(()=>{
  let unlocked=false,won=false,current=null,comboStep=0,lastTick=0;
  const visitedZones=new Set(),effectPools=new Map(),errors=new Map();
@@ -9763,13 +9764,7 @@ document.addEventListener("keydown",e=>{
 restartJourneyBtn.addEventListener("click",e=>{
  e.preventDefault();e.stopPropagation();
  if(!running)return;
- closeDifficultyMenu();
- openGameConfirm({
-  title:"להתחיל את המשחק מחדש?",
-  message:"ההתקדמות במסע הנוכחי תימחק. השיאים האישיים יישמרו.",
-  acceptLabel:"התחל משחק מחדש",
-  onAccept:()=>showRestartStartScreen()
- });
+ showRestartStartScreen();
 });
 // In-page menu instead of native select: Android must not open a separate picker sheet.
 difficultySelect.addEventListener("click",()=>{
@@ -10596,6 +10591,7 @@ if(loadedExistingGame){
 const startScreen=document.getElementById('tsStartScreen');
 const startPrimary=document.getElementById('tsStartPrimary');
 const startRestart=document.getElementById('tsStartRestart');
+const startCancel=document.getElementById('tsStartCancel');
 const startSaved=document.getElementById('tsStartSaved');
 const startActions=document.getElementById('tsStartActions');
 const startConfirm=document.getElementById('tsStartConfirm');
@@ -10605,19 +10601,25 @@ const startDifficultyButtons=[...startScreen.querySelectorAll('[data-start-diffi
 let startDifficulty=loadedExistingGame?difficultyMode:'easy';
 let startCanContinue=loadedExistingGame;
 let startNeedsConfirmation=saveLoadBlocked;
+let restartScreenReturn=null;
 function syncStartDifficulty(){
  for(const button of startDifficultyButtons){
   button.setAttribute('aria-pressed',String(button.dataset.startDifficulty===startDifficulty));
  }
 }
 function showRestartStartScreen(selectedDifficulty=difficultyMode){
- // Restart confirmation grants permission to replace progress, but nothing
- // resets until the player chooses a mode and presses Start on this screen.
+ // This screen is the restart confirmation: choosing a mode and pressing
+ // Start replaces progress. Opening it alone never resets the saved game.
+ if(!restartScreenReturn)restartScreenReturn={
+  fromWelcome:startScreenActive,canContinue:startCanContinue,
+  needsConfirmation:startNeedsConfirmation,difficulty:startDifficulty,
+  wasPaused:gamePaused,savedHidden:startSaved.hidden,savedText:startSaved.textContent
+ };
  startScreenActive=true;
  tsAudio.suspend();
+ if(!gamePaused)pauseStarted=performance.now();
  gamePaused=true;
  pausedByBackground=false;
- pauseStarted=performance.now();
  startCanContinue=false;
  startNeedsConfirmation=false;
  startDifficulty=validDifficultyMode(selectedDifficulty)||'easy';
@@ -10627,18 +10629,52 @@ function showRestartStartScreen(selectedDifficulty=difficultyMode){
  mainMenuBtn.setAttribute('aria-expanded','false');
  overlay.classList.remove('show');
  pauseOverlay.classList.remove('show');
- startSaved.hidden=true;
- startSaved.textContent='';
+ startSaved.hidden=false;
+ startSaved.textContent='התחלת משחק חדש תמחק את ההתקדמות הנוכחית. השיאים האישיים יישמרו.';
  startActions.hidden=false;
  startConfirm.hidden=true;
- startPrimary.textContent='התחל משחק';
+ document.getElementById('tsStartTitle').textContent='התחלת משחק מחדש';
+ document.getElementById('tsStartHint').textContent='בחרו רמת קושי למשחק החדש. המשחק יתחיל משלב 1.';
+ startPrimary.textContent='התחל משחק מחדש';
  startRestart.hidden=true;
+ startCancel.hidden=false;
+ startCancel.textContent=restartScreenReturn.fromWelcome?'ביטול — חזור למסך הפתיחה'
+  :running?'ביטול — חזור למשחק':'ביטול — חזור לתוצאות';
  document.getElementById('tsStartDifficultyLabel').textContent='רמת קושי';
  syncStartDifficulty();
  startScreen.hidden=false;
  startScreen.setAttribute('aria-hidden','false');
  lastFrameTime=performance.now();
- startPrimary.focus({preventScroll:true});
+ startCancel.focus({preventScroll:true});
+}
+function cancelRestartSelection(){
+ if(!restartScreenReturn)return;
+ const previous=restartScreenReturn;
+ restartScreenReturn=null;
+ startCancel.hidden=true;
+ startDifficulty=previous.difficulty;
+ syncStartDifficulty();
+ if(previous.fromWelcome){
+  startCanContinue=previous.canContinue;
+  startNeedsConfirmation=previous.needsConfirmation;
+  startPrimary.textContent=startCanContinue?'המשך משחק':'התחל משחק';
+  startRestart.hidden=!startCanContinue;
+  startSaved.hidden=previous.savedHidden;
+  startSaved.textContent=previous.savedText;
+  document.getElementById('tsStartTitle').textContent='מוכנים למסע?';
+  document.getElementById('tsStartHint').textContent='הזיזו את החללית כדי לתפוס את הכדורים';
+  document.getElementById('tsStartDifficultyLabel').textContent=startCanContinue?'רמת קושי למשחק חדש':'רמת קושי';
+  startPrimary.focus({preventScroll:true});
+ }else{
+  dismissStartScreen();
+  if(running)continueGame();
+  else{
+   gamePaused=previous.wasPaused;
+   overlay.classList.add('show');
+   restart.focus({preventScroll:true});
+   tsAudio.sync();
+  }
+ }
 }
 function dismissStartScreen(){
  startScreenActive=false;
@@ -10653,6 +10689,7 @@ function startNewJourney(){
  if(!startScreenActive||startupLoaderActive)return;
  difficultyMode=startDifficulty;
  try{safeStorage.setItem(DIFFICULTY_MODE_KEY,difficultyMode);}catch(_e){}
+ restartScreenReturn=null;
  dismissStartScreen();
  resetGame({userInitiated:true});
 }
@@ -10674,7 +10711,8 @@ startPrimary.addEventListener('click',()=>{
  else if(startNeedsConfirmation)requestStartRestart();
  else startNewJourney();
 });
-startRestart.addEventListener('click',requestStartRestart);
+startRestart.addEventListener('click',()=>showRestartStartScreen(startDifficulty));
+startCancel.addEventListener('click',cancelRestartSelection);
 startConfirmAccept.addEventListener('click',()=>showRestartStartScreen(startDifficulty));
 function cancelStartRestart(){
  startConfirm.hidden=true;startActions.hidden=false;
@@ -10685,6 +10723,8 @@ document.addEventListener('keydown',event=>{
  if(!startScreenActive||startupLoaderActive)return;
  if(event.key==='Escape'&&!startConfirm.hidden){
   event.preventDefault();cancelStartRestart();
+ }else if(event.key==='Escape'&&restartScreenReturn){
+  event.preventDefault();cancelRestartSelection();
  }else if(event.key==='Tab'){
   const controls=[...startScreen.querySelectorAll('button:not(:disabled)')]
    .filter(button=>button.getClientRects().length);
