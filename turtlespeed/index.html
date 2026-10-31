@@ -4889,9 +4889,10 @@ const TS_AUDIO_COMPLETE='level complete.mp3';
 const TS_AUDIO_VICTORY='victory.mp3';
 const TS_AUDIO_CATCH='blue ball catch.mp3';
 const TS_AUDIO_GOLD='gold ball catch.mp3';
-const TS_AUDIO_LOSE='lose a life-phone.mp3'; // Enhanced midrange for phone speakers.
+const TS_AUDIO_LOSE='lose a life-phone-v2.mp3'; // Falling cue voiced for phone speakers.
 const tsAudio=(()=>{
  let unlocked=false,won=false,current=null,comboStep=0,lastTick=0;
+ let lifeDuckUntil=0;
  const visitedZones=new Set(),effectPools=new Map(),errors=new Map();
  const MUSIC_VOLUMES={catch:.68,complete:.73,victory:.82};
  const urlFor=name=>'sounds/'+encodeURIComponent(name);
@@ -4988,6 +4989,14 @@ const tsAudio=(()=>{
    });
   }catch(error){item.requested=false;item.blocked=true;report(item.name,error);}
  }
+ function applyMusicVolume(now){
+  if(!current)return;
+  const fade=current.fadeStart?Math.max(0,Math.min(1,(now-current.fadeStart)/200)):1;
+  // Reserve a brief clear space for life loss, then restore music smoothly.
+  const duck=!lifeDuckUntil?1:now<lifeDuckUntil ? .22
+   :.22+.78*Math.max(0,Math.min(1,(now-lifeDuckUntil)/350));
+  current.media.volume=Math.min(1,MUSIC_VOLUMES[current.kind]*fade*duck);
+ }
  function sync(now=performance.now()){
   const needed=desired();
   if(!needed){stopCurrent();return;}
@@ -5002,10 +5011,7 @@ const tsAudio=(()=>{
   if(!current.requested)startCurrent(now);
   if(!current||current.blocked)return;
   const item=current;
-  if(item.fadeStart){
-   const p=Math.max(0,Math.min(1,(now-item.fadeStart)/200));
-   item.media.volume=Math.min(1,MUSIC_VOLUMES[item.kind]*p);
-  }
+  applyMusicVolume(now);
   // Smoothly track the falling-ball speed, independent of spacecraft km/s.
   if(item.kind==='catch'){
    const maxSpeed=Number.isFinite(MAX_SPEED_MULTIPLIER)?MAX_SPEED_MULTIPLIER:5;
@@ -5022,6 +5028,14 @@ const tsAudio=(()=>{
  }
  function unlock(){
   unlocked=true;
+  // Fetch the short loss cue before gameplay needs it; do not play it here.
+  if(!effectPools.has(TS_AUDIO_LOSE)){
+   const sound=new Audio(urlFor(TS_AUDIO_LOSE));
+   sound.preload='auto';disablePitchPreservation(sound);
+   sound.addEventListener('error',()=>report(TS_AUDIO_LOSE,'Could not load sounds/'+TS_AUDIO_LOSE));
+   effectPools.set(TS_AUDIO_LOSE,[sound]);
+   if(typeof sound.load==='function')sound.load();
+  }
   if(current)current.blocked=false; // New tap can authorize blocked autoplay.
   sync(performance.now());
  }
@@ -5051,10 +5065,17 @@ const tsAudio=(()=>{
   playEffect(TS_AUDIO_CATCH,rate);
  }
  function goldCatch(){comboStep=0;playEffect(TS_AUDIO_GOLD,1);}
- function lifeLost(){comboStep=0;playEffect(TS_AUDIO_LOSE,1);}
+ function lifeLost(){
+  comboStep=0;
+  if(audioMuted||!unlocked||gamePaused||document.hidden)return;
+  const now=performance.now();
+  lifeDuckUntil=now+600;
+  applyMusicVolume(now);
+  playEffect(TS_AUDIO_LOSE,1);
+ }
  function reset({newGame=false}={}){
   won=false;comboStep=0;stopCurrent();lastTick=0;
-  if(newGame)visitedZones.clear();
+  if(newGame){visitedZones.clear();lifeDuckUntil=0;}
  }
  function victory(){won=true;comboStep=0;stopCurrent();sync(performance.now());}
  function gameOver(){won=false;comboStep=0;stopCurrent();}
