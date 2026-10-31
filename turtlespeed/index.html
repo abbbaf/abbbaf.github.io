@@ -4059,6 +4059,47 @@ body:has(#gameConfirmOverlay.show) #levelCompleteOverlay .tsStageStar {
  #tsPwaPortraitHost{border-radius:0;box-shadow:none}
 }
 </style>
+<style id="tsStartScreenStyles">
+#tsStartScreen[hidden],#tsStartScreen [hidden]{display:none!important;}
+#tsStartScreen{
+ position:fixed;inset:0;z-index:900000;display:flex;align-items:center;
+ justify-content:center;padding:24px 18px;overflow:auto;direction:rtl;text-align:center;
+ background:radial-gradient(ellipse at 50% 18%,#25446a 0%,#101d37 50%,#080f22 100%);
+}
+#tsStartCard{width:min(100%,340px);margin:auto;color:#eef7ff;}
+#tsStartLogo{display:block;width:82%;max-width:265px;height:auto;margin:0 auto 24px;}
+#tsStartTitle{font-size:24px;margin:0 0 12px;color:#e5fffa;}
+#tsStartHint{font-size:16px;line-height:1.65;color:#c6dbed;margin:0 0 24px;}
+#tsStartDifficulty{border:0;padding:0;margin:0 0 22px;min-width:0;}
+#tsStartDifficulty legend{width:100%;font-size:14px;color:#b9d4e9;margin-bottom:10px;}
+.tsStartChoices{display:flex;gap:12px;}
+.tsStartChoices button{
+ flex:1;min-height:48px;border:1px solid #456483;border-radius:14px;
+ background:#152c49;color:#ddecfa;font-size:17px;font-weight:700;cursor:pointer;
+}
+.tsStartChoices button[aria-pressed="true"]{
+ border-color:#88e8df;background:#234b60;color:#fff;box-shadow:0 0 0 1px #88e8df;
+}
+#tsStartSaved{font-size:14px;line-height:1.6;color:#b6d9eb;margin:0 0 16px;}
+#tsStartActions,#tsStartConfirm{display:flex;flex-direction:column;gap:12px;}
+#tsStartScreen button{font-family:inherit;touch-action:manipulation;}
+#tsStartScreen button:focus-visible{outline:3px solid #b6f6ec;outline-offset:4px;}
+#tsStartScreen button:disabled{opacity:.55;cursor:wait;}
+#tsStartPrimary,#tsStartConfirmAccept{
+ min-height:54px;border:0;border-radius:16px;background:#a6f1df;color:#102b3c;
+ font-size:19px;font-weight:800;cursor:pointer;padding:12px;
+}
+#tsStartRestart,#tsStartConfirmCancel{
+ min-height:46px;border:1px solid #486280;border-radius:14px;
+ background:transparent;color:#d5e5f4;font-size:15px;font-weight:600;cursor:pointer;padding:10px;
+}
+#tsStartConfirm p{margin:0 0 6px;line-height:1.7;color:#ffe7c5;}
+@media(max-height:580px){
+ #tsStartScreen{padding:14px 18px;}
+ #tsStartLogo{max-width:150px;margin-bottom:12px;}
+ #tsStartHint,#tsStartDifficulty{margin-bottom:14px;}
+}
+</style>
 </head>
 <body>
 <div id="tsPwaPortraitHost">
@@ -4070,6 +4111,30 @@ body:has(#gameConfirmOverlay.show) #levelCompleteOverlay .tsStageStar {
   <div class="loaderText">טוען את מערכת השמש...</div>
  </div>
 </div>
+<section id="tsStartScreen" role="dialog" aria-modal="true" aria-labelledby="tsStartTitle" aria-describedby="tsStartHint" hidden>
+ <div id="tsStartCard">
+  <img id="tsStartLogo" src="images/ui/turtlespeed-logo-full.png" alt="TurtleSpeed">
+  <h1 id="tsStartTitle">מוכנים למסע?</h1>
+  <p id="tsStartHint">הזיזו את החללית כדי לתפוס את הכדורים</p>
+  <fieldset id="tsStartDifficulty">
+   <legend id="tsStartDifficultyLabel">רמת קושי</legend>
+   <div class="tsStartChoices">
+    <button type="button" data-start-difficulty="easy" aria-pressed="true">קל</button>
+    <button type="button" data-start-difficulty="hard" aria-pressed="false">קשה</button>
+   </div>
+  </fieldset>
+  <p id="tsStartSaved" role="status" hidden></p>
+  <div id="tsStartActions">
+   <button id="tsStartPrimary" type="button" disabled>התחל משחק</button>
+   <button id="tsStartRestart" type="button" hidden disabled>התחל משחק מחדש</button>
+  </div>
+  <div id="tsStartConfirm" hidden>
+   <p>ההתקדמות במסע הנוכחי תימחק. השיאים האישיים יישמרו.</p>
+   <button id="tsStartConfirmAccept" type="button">התחל משחק מחדש</button>
+   <button id="tsStartConfirmCancel" type="button">ביטול</button>
+  </div>
+ </div>
+</section>
 <script>
 /* Start decoding the Sun while the rest of this large HTML file is still streaming. */
 const EARLY_SUN_DATA="images/objects/sun.webp";
@@ -4284,7 +4349,7 @@ EARLY_SUN_IMAGE.src=EARLY_SUN_DATA;
   </div>
   <div id="pauseMenuActions">
    <button id="mainMenuDone" type="button">המשך משחק</button>
-   <button id="restartJourneyBtn" type="button" aria-label="התחל מחדש" title="התחל מחדש"><svg class="restartGlyph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 1 1-2.5-5.8"/><path d="M20 3v6h-6"/></svg><span>התחל מחדש</span></button>
+   <button id="restartJourneyBtn" type="button" aria-label="התחל משחק מחדש" title="התחל משחק מחדש"><svg class="restartGlyph" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 11a8 8 0 1 1-2.5-5.8"/><path d="M20 3v6h-6"/></svg><span>התחל משחק מחדש</span></button>
   </div>
   <!-- Kept in DOM for existing level-rewind logic; omitted from the proposed menu layout. -->
   <button id="backLevelBtn" type="button" title="חזור לשלב הקודם" aria-label="חזור לשלב הקודם" style="display:none" hidden><span id="backLevelText">שלב קודם</span><span class="backLevelIcon" aria-hidden="true">↩</span></button>
@@ -4474,6 +4539,7 @@ const BODY_IMAGE_KEYS={
 const BODY_IMAGES={};
 const STARTUP_BODY_IMAGE_KEYS=new Set(['sun']);
 let startupLoaderActive=true; // Freeze journey progression until the Sun-ready loader is dismissed.
+let startScreenActive=true; // No gameplay, music or save writes until Start/Continue.
 function decodeBodyImage(key,src){
  const img=key==='sun'&&typeof EARLY_SUN_IMAGE!=='undefined'?EARLY_SUN_IMAGE:new Image();
  img.decoding='async';
@@ -4808,7 +4874,7 @@ function audioTone(freq,start,dur,gain=.055,endFreq=0,type="triangle"){
  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
  o.connect(g);g.connect(sfxMaster);o.start(t);o.stop(t+dur+.03);
 }
-/* TurtleSpeed Audio Manager v1: external WAV assets in ./sounds/.
+/* TurtleSpeed Audio Manager v1: external MP3 assets in ./sounds/.
  * Intentionally uses HTMLMediaElements for content:// and file:// compatibility.
  * The first user gesture unlocks media playback in browsers that require it.
  */
@@ -4843,6 +4909,7 @@ const tsAudio=(()=>{
   return TS_AUDIO_ZONE_FILES.find(([a,b])=>n>=a&&n<=b)?.[2]||'track1.mp3';
  }
  function desired(){
+  if(startScreenActive)return null;
   if(won)return {kind:'victory',name:TS_AUDIO_VICTORY};
   if(!running)return null;
   if(levelCompleteBody||plutoVictoryPending||
@@ -4872,7 +4939,7 @@ const tsAudio=(()=>{
   const repeatZone=kind==='catch'&&visitedZones.has(name);
   if(kind==='catch')visitedZones.add(name);
   const item={kind,name,media,ended:false,blocked:false,requested:false,
-   fadeStart:0,fadeBase:0,rate:1,seekPending:repeatZone};
+   fadeStart:0,fadeBase:0,rate:1,seekPending:repeatZone,playRequest:0};
   media.volume=0;
   media.playbackRate=1;
   media.addEventListener('error',()=>{
@@ -4880,6 +4947,7 @@ const tsAudio=(()=>{
    report(name,'Could not load sounds/'+name+' (check the file path and Android content-provider permissions)');
   });
   media.addEventListener('ended',()=>{if(!media.loop)item.ended=true;});
+  media.addEventListener('playing',()=>{item.blocked=false;errors.delete(name);});
   function applyCue(){
    if(!item.seekPending)return;
    const duration=media.duration;
@@ -4895,6 +4963,7 @@ const tsAudio=(()=>{
  }
  function suspend(){
   if(current){
+   current.playRequest++;
    current.media.pause();current.requested=false;
    // Unpausing should have its own short, soft fade-in.
    current.fadeStart=0;
@@ -4904,12 +4973,13 @@ const tsAudio=(()=>{
  function startCurrent(now){
   if(!current||current.requested||current.blocked||current.ended)return;
   const item=current;
+  const request=++item.playRequest;
   item.requested=true;item.fadeStart=now;item.fadeBase=0;
   item.media.volume=0;
   try{
    const promise=item.media.play();
    if(promise&&typeof promise.catch==='function')promise.catch(error=>{
-    if(current!==item)return;
+    if(current!==item||item.playRequest!==request)return;
     item.requested=false;item.blocked=true;
     report(item.name,error&&error.name==='NotAllowedError'
      ?'Playback waiting for a user gesture'
@@ -4981,7 +5051,10 @@ const tsAudio=(()=>{
  }
  function goldCatch(){comboStep=0;playEffect(TS_AUDIO_GOLD,1);}
  function lifeLost(){comboStep=0;playEffect(TS_AUDIO_LOSE,1);}
- function reset(){won=false;comboStep=0;stopCurrent();lastTick=0;}
+ function reset({newGame=false}={}){
+  won=false;comboStep=0;stopCurrent();lastTick=0;
+  if(newGame)visitedZones.clear();
+ }
  function victory(){won=true;comboStep=0;stopCurrent();sync(performance.now());}
  function gameOver(){won=false;comboStep=0;stopCurrent();}
  function status(){return {
@@ -4997,8 +5070,11 @@ window.turtleSpeedAudioStatus=()=>tsAudio.status();
 function soundCatch(){tsAudio.blueCatch();}
 function soundGold(){tsAudio.goldCatch();}
 function soundMiss(){tsAudio.lifeLost();}
-addEventListener("pointerdown",enableAudio,{passive:true});
-addEventListener("keydown",enableAudio,{passive:true});
+// Capture gestures before menu buttons stop propagation. Click also handles
+// keyboard activation and touch browsers that authorize media only on release.
+addEventListener("pointerdown",enableAudio,{passive:true,capture:true});
+addEventListener("keydown",enableAudio,{passive:true,capture:true});
+addEventListener("click",enableAudio,{passive:true,capture:true});
 function renderSoundIcon(){
  const waves=audioMuted
   ?'<path d="M17 9l5 6m0-6l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
@@ -5036,7 +5112,8 @@ musicMuteBtn.addEventListener('click',e=>{
  musicMuted=!musicMuted;
  try{localStorage.setItem('turtlespeed-music-muted',String(musicMuted));}catch(_e){}
  renderMusicIcon();
- tsAudio.sync();
+ if(!musicMuted)enableAudio();
+ else tsAudio.sync();
 });
 const overlay=document.getElementById("overlay");
 const overlayText=document.getElementById("overlayText");
@@ -7226,8 +7303,8 @@ function endGame(){
  overlayText.innerHTML="ניקוד סופי: <b>"+score+"</b><br>שלב: <b>"+stage+"</b><br>שיא שלבים: <b>"+bestStage+"</b><br>נתפסו: <b>"+catches+"</b><br>פספוסים: <b>"+misses+"</b><br>דיוק: <b>"+accuracy()+"%</b><br>רצף שיא: <b>"+bestStreak+"</b>";
  overlay.classList.add("show");
 }
-function resetGame(){
- tsAudio.reset();
+function resetGame({userInitiated=false}={}){
+ tsAudio.reset({newGame:true});
  // Keep the active difficulty for Start Over and post-game Play Again.
  // Choosing another difficulty sets difficultyMode before calling resetGame().
  hideLevelEta();
@@ -7249,6 +7326,10 @@ function resetGame(){
  const now=performance.now();lastSpawn=now;stageStarted=now;solarStarted=now;journeyDistanceKm=JOURNEY_START_KM;gameplayElapsed=0;actualPlayElapsed=0;totalGameElapsed=0;lastPersistedTotalSeconds=0;activeTravelC=SUN_TRAVEL_C;automaticTravelMode="cruise";sunEncounterPhase="done";sunPhaseStarted=now;syncSpeedControl();rewardedPlanets.clear();sectionCheckpointId="time";sectionCheckpointElapsed=0;sectionCheckpointDistanceKm=JOURNEY_START_KM;sectionCheckpointState=null;checkpointRecoveryUntil=0;nextCheckpointElapsed=CHECKPOINT_FALLBACK_SECONDS;nextTimeBonusElapsed=600;timeBonusCount=0;checkpointReturns=0;encounter=null;finalEscapePhase="inactive";finalEscapeStartElapsed=0;spaceOnlyMessageShown=false;flashUntil=0;lastFrameTime=now;
  stageFlash.style.opacity="0";stageFlash.style.transform="translate(-50%,-50%) scale(.85)";missFeedback.style.opacity="0";missFeedbackUntil=0;hideMilestoneArrival();tsMoonReset();
  document.getElementById("overlayTitle").textContent="Game Over";overlay.classList.remove("show");stageProgressBar.style.width="0%";checkpointProgressBar.style.width="0%";checkpointProgressWrap.classList.remove("show");setTotalDistanceDisplay(JOURNEY_START_KM);establishCheckpoint("start",0,JOURNEY_START_KM);levelBeginningState={...sectionCheckpointState};saveCheckpointGame();syncNextObjectDistance();updateJourneySection();updateHud();
+ // Request playback while the Restart/confirmation gesture is still active,
+ // after running, pause, encounter and level state have all been reset.
+ if(userInitiated)enableAudio();
+ else tsAudio.sync(now);
 }
 function move(x){if(!running)return;player.targetX=Math.max(player.r,Math.min(W-player.r,x))}
 // Relative swipe controls: touching a new spot should NOT teleport the catcher.
@@ -7282,7 +7363,7 @@ restart.addEventListener("click",e=>{
  e.preventDefault();e.stopPropagation();
  overlay.classList.remove("show");
  closeDifficultyMenu();
- resetGame();
+ showRestartStartScreen();
 });
 
 function scheduleNextRare(){
@@ -9173,12 +9254,14 @@ function buildSavePayload(saveKind="resume"){
 }
 
 function saveResumeGame(){
+ if(startScreenActive)return;
  if(validSavedDistanceKm(journeyDistanceKm)===null)return;
  persistTotalGameTime();
  try{safeStorage.setItem(RESUME_SAVE_KEY,JSON.stringify(buildSavePayload("resume")))}catch(e){}
 }
 
 function saveCheckpointGame(){
+ if(startScreenActive)return;
  if(validSavedDistanceKm(journeyDistanceKm)===null)return;
  persistTotalGameTime();
  try{safeStorage.setItem(CHECKPOINT_SAVE_KEY,JSON.stringify(buildSavePayload("checkpoint")))}catch(e){}
@@ -9593,6 +9676,7 @@ function continueGame(){
  // A resume save is intentionally single-use. Once play continues, only the
  // latest real checkpoint remains persistent.
  clearResumeSave();
+ enableAudio();
 }
 // The pause button opens the full menu via mainMenuBtn.addEventListener below.
 continueBtn.addEventListener("click",continueGame);
@@ -9681,10 +9765,10 @@ restartJourneyBtn.addEventListener("click",e=>{
  if(!running)return;
  closeDifficultyMenu();
  openGameConfirm({
-  title:"להתחיל מחדש?",
+  title:"להתחיל את המשחק מחדש?",
   message:"ההתקדמות במסע הנוכחי תימחק. השיאים האישיים יישמרו.",
-  acceptLabel:"התחל מחדש",
-  onAccept:()=>resetGame()
+  acceptLabel:"התחל משחק מחדש",
+  onAccept:()=>showRestartStartScreen()
  });
 });
 // In-page menu instead of native select: Android must not open a separate picker sheet.
@@ -9706,7 +9790,7 @@ difficultyMenu.addEventListener("click",event=>{
    difficultyMode=requested;
    syncDifficultyChooser();
    try{safeStorage.setItem(DIFFICULTY_MODE_KEY,difficultyMode)}catch(e){}
-   resetGame();
+   resetGame({userInitiated:true});
   }
  });
 });
@@ -9737,6 +9821,7 @@ document.addEventListener("pointerdown",requestPersistentStorage,{once:true,capt
 // exact level-completion / encounter timing. Do NOT auto-resume on return:
 // the player resumes by tapping the visible Continue control.
 function pauseOnBackground(){
+ if(startScreenActive)return;
  tsAudio.suspend();
  if(!running)return;
  if(!gamePaused){
@@ -10141,6 +10226,7 @@ function tsGuardDraw(name,fn,fallback){
  }
 }
 function tsGameFrame(now){
+ if(startScreenActive){lastFrameTime=now;return;}
  tsAudio.sync(now);
  if(gamePaused){
   // Important: a deliberate/background pause must NEVER auto-resume.
@@ -10484,36 +10570,145 @@ function loop(now){
  }
 }
 // Diagnostics available when inspecting the page; no new game controls.
-window.turtleSpeedStatus=()=>({running,gamePaused,stage,distanceKm:journeyDistanceKm,
+window.turtleSpeedStatus=()=>({running,gamePaused,startScreenActive,stage,distanceKm:journeyDistanceKm,
  seconds:actualPlayElapsed,loader:startupLoaderActive,drops:drops.length,
  lastFrameAt:tsLastWorkingFrameAt,error:tsRenderErrorMessage,
  audio:tsAudio.status(),
  pauseVisible:pauseOverlay.classList.contains('show'),
  menuVisible:mainMenuOverlay.classList.contains('show')});
 
-// Start immediately; the small difficulty selector always remains available.
-// Existing journeys retain their saved mode and resume without any welcome screen.
+// Prepare saved progress, but wait for an explicit Start/Continue gesture.
 const loadedExistingGame=loadGame();
 if(loadedExistingGame){
  syncDifficultyChooser();
- // A restored journey begins paused. Show the existing "tap anywhere"
- // overlay rather than silently restarting the game when Chrome reloads it.
- pausedByBackground=true;
+ pausedByBackground=false;
  gamePaused=true;
  pauseStarted=performance.now();
- pauseOverlay.classList.add("show");
 }else if(saveLoadBlocked){
  // Do not delete an unreadable save without explicit user action.
  running=false;gamePaused=true;
- document.getElementById("overlayTitle").textContent="שגיאת שמירה";
- overlayText.textContent="לא ניתן לשחזר את המרחק מהשמירה. נתוני השמירה לא נמחקו. אפשר לנסות את הקובץ הקודם, או להתחיל מחדש.";
- restart.textContent="התחל מחדש";
- overlay.classList.add("show");
  syncDifficultyChooser();
 }else{
- difficultyMode="easy"; // A new journey always starts on Easy unless the player selects Hard.
- resetGame();
+ difficultyMode="easy";
+ running=false;gamePaused=true;
+ syncDifficultyChooser();
 }
+const startScreen=document.getElementById('tsStartScreen');
+const startPrimary=document.getElementById('tsStartPrimary');
+const startRestart=document.getElementById('tsStartRestart');
+const startSaved=document.getElementById('tsStartSaved');
+const startActions=document.getElementById('tsStartActions');
+const startConfirm=document.getElementById('tsStartConfirm');
+const startConfirmAccept=document.getElementById('tsStartConfirmAccept');
+const startConfirmCancel=document.getElementById('tsStartConfirmCancel');
+const startDifficultyButtons=[...startScreen.querySelectorAll('[data-start-difficulty]')];
+let startDifficulty=loadedExistingGame?difficultyMode:'easy';
+let startCanContinue=loadedExistingGame;
+let startNeedsConfirmation=saveLoadBlocked;
+function syncStartDifficulty(){
+ for(const button of startDifficultyButtons){
+  button.setAttribute('aria-pressed',String(button.dataset.startDifficulty===startDifficulty));
+ }
+}
+function showRestartStartScreen(selectedDifficulty=difficultyMode){
+ // Restart confirmation grants permission to replace progress, but nothing
+ // resets until the player chooses a mode and presses Start on this screen.
+ startScreenActive=true;
+ tsAudio.suspend();
+ gamePaused=true;
+ pausedByBackground=false;
+ pauseStarted=performance.now();
+ startCanContinue=false;
+ startNeedsConfirmation=false;
+ startDifficulty=validDifficultyMode(selectedDifficulty)||'easy';
+ closeDifficultyMenu();
+ mainMenuOverlay.classList.remove('show');
+ mainMenuOverlay.setAttribute('aria-hidden','true');
+ mainMenuBtn.setAttribute('aria-expanded','false');
+ overlay.classList.remove('show');
+ pauseOverlay.classList.remove('show');
+ startSaved.hidden=true;
+ startSaved.textContent='';
+ startActions.hidden=false;
+ startConfirm.hidden=true;
+ startPrimary.textContent='התחל משחק';
+ startRestart.hidden=true;
+ document.getElementById('tsStartDifficultyLabel').textContent='רמת קושי';
+ syncStartDifficulty();
+ startScreen.hidden=false;
+ startScreen.setAttribute('aria-hidden','false');
+ lastFrameTime=performance.now();
+ startPrimary.focus({preventScroll:true});
+}
+function dismissStartScreen(){
+ startScreenActive=false;
+ startScreen.hidden=true;
+ startScreen.setAttribute('aria-hidden','true');
+ pauseOverlay.classList.remove('show');
+ pausedByBackground=false;
+ lastFrameTime=performance.now();
+ mainMenuBtn.focus({preventScroll:true});
+}
+function startNewJourney(){
+ if(!startScreenActive||startupLoaderActive)return;
+ difficultyMode=startDifficulty;
+ try{safeStorage.setItem(DIFFICULTY_MODE_KEY,difficultyMode);}catch(_e){}
+ dismissStartScreen();
+ resetGame({userInitiated:true});
+}
+function requestStartRestart(){
+ if(!startScreenActive||startupLoaderActive)return;
+ startActions.hidden=true;
+ startConfirm.hidden=false;
+ startConfirmCancel.focus();
+}
+for(const button of startDifficultyButtons){
+ button.addEventListener('click',()=>{
+  startDifficulty=validDifficultyMode(button.dataset.startDifficulty)||'easy';
+  syncStartDifficulty();
+ });
+}
+startPrimary.addEventListener('click',()=>{
+ if(!startScreenActive||startupLoaderActive)return;
+ if(startCanContinue){dismissStartScreen();continueGame();}
+ else if(startNeedsConfirmation)requestStartRestart();
+ else startNewJourney();
+});
+startRestart.addEventListener('click',requestStartRestart);
+startConfirmAccept.addEventListener('click',()=>showRestartStartScreen(startDifficulty));
+function cancelStartRestart(){
+ startConfirm.hidden=true;startActions.hidden=false;
+ (startCanContinue?startRestart:startPrimary).focus();
+}
+startConfirmCancel.addEventListener('click',cancelStartRestart);
+document.addEventListener('keydown',event=>{
+ if(!startScreenActive||startupLoaderActive)return;
+ if(event.key==='Escape'&&!startConfirm.hidden){
+  event.preventDefault();cancelStartRestart();
+ }else if(event.key==='Tab'){
+  const controls=[...startScreen.querySelectorAll('button:not(:disabled)')]
+   .filter(button=>button.getClientRects().length);
+  const index=controls.indexOf(document.activeElement);
+  if(controls.length&&(index===-1||(!event.shiftKey&&index===controls.length-1)||(event.shiftKey&&index===0))){
+   event.preventDefault();controls[event.shiftKey?controls.length-1:0].focus();
+  }
+ }
+});
+startPrimary.textContent=loadedExistingGame?'המשך משחק':'התחל משחק';
+startRestart.hidden=!loadedExistingGame;
+document.getElementById('tsStartDifficultyLabel').textContent=loadedExistingGame
+ ?'רמת קושי למשחק חדש':'רמת קושי';
+if(loadedExistingGame){
+ startSaved.hidden=false;
+ startSaved.textContent='שלב '+stage+' · רמת קושי: '+DIFFICULTY_LABELS[difficultyMode];
+}else if(saveLoadBlocked){
+ startSaved.hidden=false;
+ startSaved.textContent='לא ניתן לשחזר את השמירה. התחלת משחק חדש תחליף את ההתקדמות השמורה, לאחר אישור.';
+}
+syncStartDifficulty();
+pauseOverlay.classList.remove('show');
+startScreen.hidden=false;
+startScreen.setAttribute('aria-hidden','false');
 requestAnimationFrame(loop);
 
 // Only the Sun blocks startup. Every other body image decodes during play.
@@ -10525,13 +10720,12 @@ function finishStartupLoading(){
  if(!loader)return;
  // Two frames give the initialized game a chance to paint underneath before the fade.
  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-  // Start the journey only when the player can actually see it.
+  // Assets are ready. The start screen keeps gameplay and music idle until
+  // the player presses Start/Continue, authorizing browser audio playback.
   startupLoaderActive=false;
-  // Attempt immediate music on PWA launch. Browsers may block it; the regular
-  // pointerdown/keydown unlock remains in place as a reliable fallback.
-  try{ if(!musicMuted)tsAudio.unlock(); }catch(_autoplayError){}
-  const startupNow=performance.now();
-  lastFrameTime=startupNow;lastSpawn=startupNow;stageStarted=startupNow;solarStarted=startupNow;
+  startPrimary.disabled=false;
+  startRestart.disabled=false;
+  startPrimary.focus({preventScroll:true});
   loader.classList.add("loaderDone");
   loader.addEventListener("transitionend",()=>loader.remove(),{once:true});
   setTimeout(()=>loader.remove(),500);
@@ -11669,8 +11863,39 @@ window.TS_END_CARD_KEY_BY_NAME={"mercury":"mercury","venus":"venus","earth":"ear
 #mainMenuOverlay #tsSideMenuHandle::after{display:block!important;}
 
 /* TurtleSpeed: two separate audio controls within the existing compact pause menu. */
+/* Keep audio and difficulty on one line with a real gap between the groups.
+   Reserve enough menu width and override older minimum widths that caused
+   the difficulty button to spill into the sound controls. */
+#mainMenuOverlay #mainMenuCard,
+#mainMenuOverlay.belowArrivalBanner #mainMenuCard{
+  width:min(90vw,280px)!important;
+}
+#mainMenuOverlay #mainMenuSettings{
+  flex-direction:row!important;flex-wrap:nowrap!important;
+  gap:12px!important;align-items:flex-start!important;
+}
+/* Keep difficulty choices in the scrollable menu's flow instead of clipping
+   an absolutely positioned dropdown inside the narrow settings row. */
+#mainMenuOverlay #mainMenuSettings .mainMenuSettingRow:last-child{
+  order:1!important;flex:1 1 0!important;width:auto!important;min-width:0!important;
+  gap:6px!important;padding:3px 6px!important;
+  overflow:visible!important;align-items:flex-start!important;
+}
+#mainMenuOverlay #mainMenuSettings .mainMenuSettingRow:last-child .menuSettingLabel{
+  margin-left:0!important;
+}
+#mainMenuOverlay #mainMenuCard #difficultyChooser{
+  flex:0 0 64px!important;width:64px!important;max-width:64px!important;
+}
+#mainMenuOverlay #mainMenuCard #difficultySelect{
+  width:100%!important;min-width:0!important;
+}
+#mainMenuOverlay #mainMenuCard #difficultyMenu{
+  position:static!important;width:100%!important;
+  margin-top:5px!important;
+}
 #mainMenuOverlay #mainMenuSettings .mainMenuSettingRow:first-child{
-  flex:0 0 84px!important;width:84px!important;min-width:84px!important;
+  order:2!important;flex:0 0 84px!important;width:84px!important;min-width:84px!important;
 }
 #mainMenuOverlay .menuAudioControl{display:flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;}
 #mainMenuOverlay #mainMenuCard #muteBtn,
@@ -11770,7 +11995,7 @@ window.TS_END_CARD_KEY_BY_NAME={"mercury":"mercury","venus":"venus","earth":"ear
    addEventListener('load',()=>{
      navigator.serviceWorker.register('./service-worker.js',{scope:'./'})
        .then(reg=>{
-         // Audio files are optional at build time; cache every available WAV
+         // Audio files are optional at build time; cache every available MP3
          // after installation without making the initial PWA install fail.
          const prefetch=()=>{
            const sw=reg.active || navigator.serviceWorker.controller;
