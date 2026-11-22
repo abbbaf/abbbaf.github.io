@@ -46,3 +46,38 @@
  .section-heading{margin-bottom:13px}h2{font-size:20px}
  .eye-grid{grid-template-columns:95px minmax(0,1fr);gap:10px}.eye-pad{height:100px}
 }
+.header-actions{display:flex;align-items:center;gap:10px}
+#rotate-view{display:none;font-size:12px;padding:8px 10px}
+@media(orientation:portrait){#rotate-view{display:block}}
+@media(orientation:portrait) and (max-width:650px){header{padding:12px;gap:8px}.brand-mark{display:none}.brand{gap:0}h1{font-size:18px}}
+
+/* A real quarter-turn of the workspace, independent of the device's orientation. */
+html.manual-rotation{height:100%;overflow:hidden}
+body.manual-landscape{position:fixed;top:0;left:100vw;width:var(--rotated-width);height:var(--rotated-height);transform:rotate(90deg);transform-origin:0 0;display:flex;flex-direction:column;overflow:hidden}
+body.manual-landscape>header{width:100%;flex-shrink:0;padding:8px 16px}
+body.manual-landscape .badge{display:none}
+body.manual-landscape #rotate-view{display:block}
+body.manual-landscape main{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);grid-template-rows:minmax(0,1fr);gap:12px;flex:1;min-height:0;width:100%;padding:8px 12px;margin:0 auto;overflow:hidden}
+body.manual-landscape .preview-panel{position:relative;top:auto;align-self:stretch;height:100%;max-height:none;min-height:0;min-width:0;margin:0;z-index:auto;border-radius:13px}
+body.manual-landscape .stage{height:auto;min-height:0;flex:1}
+body.manual-landscape .controls-panel{height:100%;min-height:0;min-width:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding:3px 9px 18px 3px;scroll-padding-top:12px;scroll-margin-top:0}
+body.manual-landscape .controls{grid-template-columns:1fr}
+body.manual-landscape .preview-toolbar{padding:6px;gap:5px;flex-wrap:wrap}
+body.manual-landscape .preview-toolbar button{font-size:11px;padding:6px 8px}
+body.manual-landscape .preview-footer{padding:5px 9px;min-height:30px}
+body.manual-landscape .preview-footer #status{display:none}
+body.manual-landscape .export-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:0 7px 7px;gap:5px}
+body.manual-landscape .export-actions button{min-width:0;font-size:10px;padding:7px 3px;white-space:normal}
+body.manual-landscape .caption,body.manual-landscape>footer{display:none}
+body.manual-landscape .section-heading{margin-bottom:13px}
+body.manual-landscape h2{font-size:20px}
+body.manual-landscape .eye-grid{grid-template-columns:95px minmax(0,1fr);gap:10px}
+body.manual-landscape .eye-pad{height:100px}
+
+/* Portrait gives the turtle most of the width rather than a small thumbnail. */
+@media(orientation:portrait) and (max-width:950px){
+ body:not(.manual-landscape) main{display:block}
+ body:not(.manual-landscape) .preview-panel{position:sticky;top:8px;height:min(68vh,720px);height:min(68dvh,720px);max-height:calc(100dvh - 16px);margin-bottom:22px}
+ body:not(.manual-landscape) .stage{height:auto;min-height:0;flex:1}
+ body:not(.manual-landscape) .caption{display:none}
+}

@@ -60,7 +60,7 @@
         const grid=document.createElement('div');grid.className='eye-grid';const pad=document.createElement('div');pad.className='eye-pad';pad.setAttribute('aria-hidden','true');const dot=document.createElement('span');dot.className='eye-dot';pad.append(dot);const axes=document.createElement('div');
         const updaters=[];for(let i=0;i<2;i++){const name=document.createElement('span');name.className='eye-axis';name.textContent=i===0?'X · left / right':'Y · down / up';axes.append(name);updaters.push(slider(axes,p,i,p.name+(i===0?' X':' Y')));}
         grid.append(pad,axes);card.append(grid);
-        const pointer=event=>{const rect=pad.getBoundingClientRect();const x=Math.max(0,Math.min(1,(event.clientX-rect.left)/rect.width)),y=1-Math.max(0,Math.min(1,(event.clientY-rect.top)/rect.height));setParameter(p.name,[p.min[0]+x*(p.max[0]-p.min[0]),p.min[1]+y*(p.max[1]-p.min[1])]);};
+        const pointer=event=>{const rect=pad.getBoundingClientRect();const rotated=window.turtleView&&window.turtleView.rotated;const x=Math.max(0,Math.min(1,rotated?(event.clientY-rect.top)/rect.height:(event.clientX-rect.left)/rect.width)),y=Math.max(0,Math.min(1,rotated?(event.clientX-rect.left)/rect.width:1-(event.clientY-rect.top)/rect.height));setParameter(p.name,[p.min[0]+x*(p.max[0]-p.min[0]),p.min[1]+y*(p.max[1]-p.min[1])]);};
         let down=false;pad.onpointerdown=event=>{down=true;pad.setPointerCapture(event.pointerId);pointer(event);};pad.onpointermove=event=>{if(down)pointer(event);};pad.onpointerup=pad.onpointercancel=()=>{down=false;};
         widgets.set(p.name,{update:v=>{updaters.forEach((fn,i)=>fn(v[i]));dot.style.left=((v[0]-p.min[0])/(p.max[0]-p.min[0])*100)+'%';dot.style.top=(100-(v[1]-p.min[1])/(p.max[1]-p.min[1])*100)+'%';}});
       }else{
