@@ -1,0 +1,13 @@
+{
+  "exported_from": "Inochi Creator v0.8.6, File > Export > Inochi2D Puppet",
+  "source_project": "turtle6-eyebrow-slope.inx",
+  "file": "turtle.inp",
+  "sha256": "79b619c7333edd32729b37001ed4d6fdd40823ba5b2989568d8294024506a225",
+  "uncompressed_bytes": 19411467,
+  "gzip_bytes": 3107996,
+  "atlas_resolution": 4096,
+  "texture_scale_percent": 100,
+  "parameters": 8,
+  "texture_atlases": 3,
+  "gzip_roundtrip_verified": true
+}

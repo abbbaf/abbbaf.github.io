@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#111d2d"><title>Turtle Expression Studio</title><link rel="icon" href="data:,"><link rel="stylesheet" href="style.css"><script defer src="expression-presets.js"></script><script defer src="white-mask-data.js"></script><script defer src="puppet-loader.js"></script><script defer src="app.js"></script></head>
+<body>
+<header><div class="brand"><span class="brand-mark" aria-hidden="true">◉</span><div><span class="eyebrow">TURTLESPEED</span><h1>Expression studio</h1></div></div><span class="badge" id="rig-count">Your Inochi turtle · live controls</span></header>
+<main>
+<section class="preview-panel" aria-label="Turtle preview">
+ <div class="preview-toolbar"><div class="segmented" role="group" aria-label="Preview framing"><button id="full-view" class="selected" aria-pressed="true">Full turtle</button><button id="face-view" aria-pressed="false">Face close-up</button></div><button id="background" title="Change preview background">Background</button></div>
+ <div id="stage" class="stage"><canvas id="turtle" width="1086" height="1448" aria-label="Live turtle expression"></canvas><div id="loading" role="status">Getting your turtle ready…</div></div>
+ <div class="preview-footer"><label class="zoom-label">Zoom <input id="zoom" type="range" min="0.7" max="1.5" value="1" step="0.05"><output id="zoom-value">100%</output></label><span id="status" role="status" aria-live="polite">Loading rig</span></div>
+ <div class="export-actions"><button id="export-png" class="primary" disabled>Download PNG</button><button id="save-settings" disabled>Save expression</button><button id="load-settings">Load expression</button><input id="settings-file" type="file" accept=".json,application/json" hidden></div>
+ <p class="caption">Transparent PNGs export the full turtle at 1086 × 1448. Preview zoom and background stay out of the image.</p>
+</section>
+<section class="controls-panel" aria-label="Expression controls">
+ <div class="section-heading"><div><span class="eyebrow">MAKE IT YOURS</span><h2>Shape an expression</h2></div><button id="reset">Reset all</button></div>
+ <label class="preset-label" for="preset">Start from an expression</label><select id="preset"><option value="">Custom expression</option></select>
+ <div id="controls" class="controls"></div>
+ <details class="notes"><summary>About these controls</summary><p>These are the parameters in your saved Inochi rig. Changes appear immediately and stay in this browser until you reset them. Use Save expression to keep a portable JSON copy.</p><p>Both eyelid controls use 1 for open and 0 for closed. Eye movement uses positive Y for up. Some extreme combinations can show the same skin seams or distortions as the original rig.</p><p>Head tilt is absent from the latest saved rig, so the head remains upright. This page does not change your Inochi project.</p></details>
+</section>
+</main>
+<div id="message" role="alert" hidden></div>
+<footer>Powered by Inox2D · <a href="vendor/THIRD-PARTY-NOTICES.md">Runtime licenses</a></footer>
+</body></html>
